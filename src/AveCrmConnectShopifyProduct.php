@@ -24,7 +24,7 @@ class AveCrmConnectShopifyProduct
      * @param AveConnectShopify $shopify  Cliente de conexión a Shopify
      * @param AveConnectShopifyApiAve $ave Cliente para la API de AveCRM
      */
-    public function __construct( AveConnectShopifyApiAve $ave)
+    public function __construct(AveConnectShopifyApiAve $ave)
     {
         $this->ave = $ave;
     }
@@ -278,7 +278,7 @@ class AveCrmConnectShopifyProduct
             $idempresa,          // string
             $token,              // string
         );
-        if($tokensShopify == null){
+        if ($tokensShopify == null) {
             return null;
         }
 
@@ -301,17 +301,130 @@ class AveCrmConnectShopifyProduct
         for ($i = 0; $i < count($tokensShopify); $i++) {
             $shop = $tokensShopify[$i]['url'];
             $token = $tokensShopify[$i]['token'];
-            $shopify = new AveConnectShopify($shop, $token);
-            $result = $shopify->product->post($jsonProductForCreate);
+            try {
+                $shopify = new AveConnectShopify($shop, $token);
+                $result = $shopify->product->post($jsonProductForCreate);
 
-            $resultCreateShopify[$shop] = [
-                "shop" => $shop,
-                "send" => $jsonProductForCreate,
-                "result" => $result,
-            ];
+                $resultCreateShopify[$shop] = [
+                    "shop" => $shop,
+                    "send" => $jsonProductForCreate,
+                    "result" => $result,
+                ];
+            } catch (\Throwable $e) {
+                $resultUpdateShopify[$shop] = [
+                    "shop" => $shop,
+                    "product_id" => $productId,
+                    "send" => $jsonProductForCreate,
+                    "result" => null,
+                    "success" => false,
+                    "error" => $e->getMessage()
+                ];
+            }
         }
 
         return $resultCreateShopify;
     }
 
+    /**
+     * Actualiza un producto existente en Shopify en todas las tiendas asociadas a una empresa.
+     *
+     * @param string $idempresa    ID de la empresa en AveCRM
+     * @param string $token        Token de autenticación
+     * @param string $productName  Nombre del producto
+     * @param string $productRef   Referencia o SKU principal
+     * @param float  $sugerido     Precio sugerido
+     * @param float  $peso         Peso en gramos
+     * @param int    $unidades     Cantidad en stock
+     * @param string $marcaName    Marca del producto
+     * @param string $categoryName Categoría del producto
+     * @param int    $productStatus Estado del producto (1 = draft, 0 = active)
+     * @param string $productDesc  Descripción en HTML
+     * @param array|string $etiquetas Etiquetas (tags)
+     * @param array  $variants     Variantes del producto
+     * @param ?string $url         URL de la imagen
+     * @param string $productId    ID de producto en Shopify (requerido para actualizar)
+     *
+     * @return array|null Resultado de la actualización por cada tienda Shopify,
+     *                    o null si no hay tokens configurados.
+     */
+    public function put(
+        string $idempresa,
+        string $token,
+        string $productName,
+        string $productRef,
+        float $sugerido,
+        float $peso,
+        int $unidades,
+        string $marcaName,
+        string $categoryName,
+        int $productStatus,
+        string $productDesc,
+        $etiquetas,
+        array $variants = [],
+        ?string $url = null,
+        string $productId = null
+    ) {
+        // Validar que el productId sea requerido para actualización
+        if (empty($productId)) {
+            throw new \InvalidArgumentException('El ID del producto es requerido para actualizar en Shopify');
+        }
+
+        $tokensShopify = $this->onGetTokenShopifyByCompany(
+            $idempresa,
+            $token
+        );
+
+        if ($tokensShopify == null) {
+            return null;
+        }
+
+        $jsonProductForUpdate = $this->getJsonCreateShopifyProduct(
+            $productName,
+            $productRef,
+            $sugerido,
+            $peso,
+            $unidades,
+            $marcaName,
+            $categoryName,
+            $productStatus,
+            $productDesc,
+            $etiquetas,
+            $variants,
+            $url,
+            $productId
+        );
+
+        $resultUpdateShopify = [];
+
+        for ($i = 0; $i < count($tokensShopify); $i++) {
+            $shop = $tokensShopify[$i]['url'];
+            $shopToken = $tokensShopify[$i]['token'];
+
+            try {
+                $shopify = new AveConnectShopify($shop, $shopToken);
+
+                // El método put de AveConnectShopify requiere el ID del producto como primer parámetro
+                $result = $shopify->product->put($productId, $jsonProductForUpdate);
+
+                $resultUpdateShopify[$shop] = [
+                    "shop" => $shop,
+                    "product_id" => $productId,
+                    "send" => $jsonProductForUpdate,
+                    "result" => $result,
+                    "success" => true
+                ];
+            } catch (\Throwable $e) {
+                $resultUpdateShopify[$shop] = [
+                    "shop" => $shop,
+                    "product_id" => $productId,
+                    "send" => $jsonProductForUpdate,
+                    "result" => null,
+                    "success" => false,
+                    "error" => $e->getMessage()
+                ];
+            }
+        }
+
+        return $resultUpdateShopify;
+    }
 }
