@@ -1,9 +1,7 @@
 # AVE Composer CRM Connect Shopify
 
-[![Latest Version](https://img.shields.io/github/v/release/franciscoblancojn/ave-composer-crm-connect-shopify)](https://github.com/franciscoblancojn/ave-composer-crm-connect-shopify/releases)
-[![PHP Version](https://img.shields.io/packagist/php-v/franciscoblancojn/ave-composer-crm-connect-shopify)](https://packagist.org/packages/franciscoblancojn/ave-composer-crm-connect-shopify)
-[![License](https://img.shields.io/github/license/franciscoblancojn/ave-composer-crm-connect-shopify)](LICENSE)
-[![Downloads](https://img.shields.io/packagist/dt/franciscoblancojn/ave-composer-crm-connect-shopify)](https://packagist.org/packages/franciscoblancojn/ave-composer-crm-connect-shopify)
+[![PHP Version](https://img.shields.io/badge/PHP-%3E%3D7.4-blue.svg)](https://php.net/)
+![License](https://img.shields.io/badge/License-MIT-green.svg)
 
 Una librería PHP moderna y eficiente para conectar sistemas CRM con Shopify a través de su API REST y GraphQL. Diseñada para facilitar la sincronización de datos, gestión de pedidos, clientes y productos entre tu CRM y tu tienda Shopify.
 
