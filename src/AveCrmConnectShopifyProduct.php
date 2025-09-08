@@ -4,18 +4,52 @@ namespace franciscoblancojn\AveCrmConnectShopify;
 
 use franciscoblancojn\AveConnectShopify\AveConnectShopify;
 
+/**
+ * Clase encargada de construir y publicar productos en Shopify
+ * usando los tokens obtenidos de AveCRM.
+ * 
+ * Integra:
+ * - Construcción del JSON requerido por Shopify para la creación de productos.
+ * - Obtención de tokens de Shopify asociados a una empresa (desde AveCRM).
+ * - Publicación de productos en múltiples tiendas Shopify al mismo tiempo.
+ */
 class AveCrmConnectShopifyProduct
 {
 
     public AveConnectShopify $shopify;
     public AveConnectShopifyApiAve $ave;
+
+    /**
+     * Constructor
+     *
+     * @param AveConnectShopify $shopify  Cliente de conexión a Shopify
+     * @param AveConnectShopifyApiAve $ave Cliente para la API de AveCRM
+     */
     public function __construct(AveConnectShopify $shopify, AveConnectShopifyApiAve $ave)
     {
         $this->ave = $ave;
         $this->shopify = $shopify;
     }
 
-
+    /**
+     * Construye el JSON de creación de producto en Shopify.
+     *
+     * @param string $productName   Nombre del producto
+     * @param string $productRef    Referencia o SKU principal
+     * @param float  $sugerido      Precio sugerido
+     * @param float  $peso          Peso del producto (en gramos)
+     * @param int    $unidades      Unidades en inventario
+     * @param string $marcaName     Marca / vendor
+     * @param string $categoryName  Categoría / tipo de producto
+     * @param int    $productStatus Estado (1 = draft, 0 = active)
+     * @param string $productDesc   Descripción en HTML
+     * @param array|string $etiquetas Etiquetas (array o string)
+     * @param array  $variants      Variantes (cada variante con atributos, precio, sku, stock, etc.)
+     * @param ?string $url          URL de la imagen asociada
+     * @param ?string $productId    ID del producto (para update o sync)
+     *
+     * @return array JSON estructurado para enviar a la API de Shopify
+     */
     private function getJsonCreateShopifyProduct(
         string $productName,
         string $productRef,
@@ -180,6 +214,14 @@ class AveCrmConnectShopifyProduct
         return $shopifyProduct;
     }
 
+    /**
+     * Obtiene los tokens de las tiendas Shopify asociadas a una empresa.
+     *
+     * @param string $idempresa ID de la empresa en AveCRM
+     * @param string $token     Token de autenticación para AveCRM
+     *
+     * @return array|null Lista de tiendas con URL y token, o null si no hay
+     */
     private function onGetTokenShopifyByCompany(
         string $idempresa,
         string $token
@@ -195,7 +237,28 @@ class AveCrmConnectShopifyProduct
         }
     }
 
-
+    /**
+     * Publica un producto en Shopify en todas las tiendas asociadas a una empresa.
+     *
+     * @param string $idempresa    ID de la empresa en AveCRM
+     * @param string $token        Token de autenticación
+     * @param string $productName  Nombre del producto
+     * @param string $productRef   Referencia o SKU principal
+     * @param float  $sugerido     Precio sugerido
+     * @param float  $peso         Peso en gramos
+     * @param int    $unidades     Cantidad en stock
+     * @param string $marcaName    Marca del producto
+     * @param string $categoryName Categoría del producto
+     * @param int    $productStatus Estado del producto (1 = draft, 0 = active)
+     * @param string $productDesc  Descripción en HTML
+     * @param array|string $etiquetas Etiquetas (tags)
+     * @param array  $variants     Variantes del producto
+     * @param ?string $url         URL de la imagen
+     * @param ?string $productId   ID de producto (opcional, para actualizar)
+     *
+     * @return array|null Resultado de la creación por cada tienda Shopify,
+     *                    o null si no hay tokens configurados.
+     */
     public function post(
         string $idempresa,
         string $token,
