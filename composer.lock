@@ -1,0 +1,87 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "4e0514393ad16b844e09eb5b707a5caa",
+    "packages": [
+        {
+            "name": "franciscoblancojn/ave-composer-connect-shopify",
+            "version": "v1.0.16",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/franciscoblancojn/ave-composer-connect-shopify.git",
+                "reference": "6dcb467255c949b872c05c826014b1893eaba0c0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/franciscoblancojn/ave-composer-connect-shopify/zipball/6dcb467255c949b872c05c826014b1893eaba0c0",
+                "reference": "6dcb467255c949b872c05c826014b1893eaba0c0",
+                "shasum": ""
+            },
+            "require": {
+                "franciscoblancojn/composer-validator": "^1"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "franciscoblancojn\\AveConnectShopify\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Libreria para conectar con Shopify",
+            "support": {
+                "issues": "https://github.com/franciscoblancojn/ave-composer-connect-shopify/issues",
+                "source": "https://github.com/franciscoblancojn/ave-composer-connect-shopify/tree/v1.0.16"
+            },
+            "time": "2025-09-04T00:21:03+00:00"
+        },
+        {
+            "name": "franciscoblancojn/composer-validator",
+            "version": "v1.0.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/franciscoblancojn/composer-validator.git",
+                "reference": "1a115074d16c253081f0880c672511a59ccbd803"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/franciscoblancojn/composer-validator/zipball/1a115074d16c253081f0880c672511a59ccbd803",
+                "reference": "1a115074d16c253081f0880c672511a59ccbd803",
+                "shasum": ""
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/FValidator.php"
+                ],
+                "psr-4": {
+                    "franciscoblancojn\\validator\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Libreria para validar datos",
+            "support": {
+                "issues": "https://github.com/franciscoblancojn/composer-validator/issues",
+                "source": "https://github.com/franciscoblancojn/composer-validator/tree/v1.0.4"
+            },
+            "time": "2025-09-01T22:02:57+00:00"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": {},
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": {},
+    "platform-dev": {},
+    "plugin-api-version": "2.6.0"
+}

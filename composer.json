@@ -1,0 +1,14 @@
+{
+    "name": "franciscoblancojn/ave-composer-crm-connect-shopify",
+    "description": "Libreria para conectar con Shopify",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "franciscoblancojn\\AveCrmConnectShopify\\": "src/"
+        }
+    },
+    "require": {
+        "franciscoblancojn/ave-composer-connect-shopify": "^1"
+    }
+}
