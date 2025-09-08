@@ -38,11 +38,7 @@ require_once 'vendor/autoload.php';
 
 use franciscoblancojn\AveCrmConnectShopify\AveCrmConnectShopify;
 
-$shop = 'mi-tienda.myshopify.com';
-$token = 'shpat_XXXXXXXXXXXXXXXXXXXX';
-$version = '2025-01'; // opcional
-
-$api = new AveCrmConnectShopify($shop, $token, $version);
+$api = new AveCrmConnectShopify();
 ```
 
 ---

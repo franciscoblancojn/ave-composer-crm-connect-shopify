@@ -2,7 +2,6 @@
 
 namespace franciscoblancojn\AveCrmConnectShopify;
 
-use franciscoblancojn\AveConnectShopify\AveConnectShopify;
 
 /**
  * Class AveCrmConnectShopify
@@ -29,11 +28,10 @@ class AveCrmConnectShopify
      * @param string $token   Token de acceso para la API de Shopify.
      * @param string $version Versión de la API de Shopify a utilizar. Por defecto '2025-01'.
      */
-    public function __construct(string $shop, string $token, $version = '2025-01')
+    public function __construct()
     {
         $client = new AveCrmConnectShopifyHttpClient();
         $ave = new AveConnectShopifyApiAve($client);
-        $shopify = new AveConnectShopify($shop, $token, $version);
-        $this->product = new AveCrmConnectShopifyProduct($shopify,$ave);
+        $this->product = new AveCrmConnectShopifyProduct($ave);
     }
 }

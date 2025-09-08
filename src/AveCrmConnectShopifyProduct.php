@@ -16,7 +16,6 @@ use franciscoblancojn\AveConnectShopify\AveConnectShopify;
 class AveCrmConnectShopifyProduct
 {
 
-    public AveConnectShopify $shopify;
     public AveConnectShopifyApiAve $ave;
 
     /**
@@ -25,10 +24,9 @@ class AveCrmConnectShopifyProduct
      * @param AveConnectShopify $shopify  Cliente de conexión a Shopify
      * @param AveConnectShopifyApiAve $ave Cliente para la API de AveCRM
      */
-    public function __construct(AveConnectShopify $shopify, AveConnectShopifyApiAve $ave)
+    public function __construct( AveConnectShopifyApiAve $ave)
     {
         $this->ave = $ave;
-        $this->shopify = $shopify;
     }
 
     /**
