@@ -16,18 +16,6 @@ use franciscoblancojn\AveConnectShopify\AveConnectShopify;
 class AveCrmConnectShopify 
 {
     /**
-     * Conector con shopify.
-     *
-     * @var AveConnectShopify
-     */
-    public AveConnectShopify $shopify;
-    /**
-     * Conector con Ave.
-     *
-     * @var AveConnectShopifyApiAve
-     */
-    public AveConnectShopifyApiAve $ave;
-    /**
      * Conector con Shopify con productos.
      *
      * @var AveCrmConnectShopifyProduct
@@ -44,8 +32,8 @@ class AveCrmConnectShopify
     public function __construct(string $shop, string $token, $version = '2025-01')
     {
         $client = new AveCrmConnectShopifyHttpClient();
-        $this->ave = new AveConnectShopifyApiAve($client);
-        $this->shopify = new AveConnectShopify($shop, $token, $version);
-        $this->product = new AveCrmConnectShopifyProduct($this->shopify,$this->ave);
+        $ave = new AveConnectShopifyApiAve($client);
+        $shopify = new AveConnectShopify($shop, $token, $version);
+        $this->product = new AveCrmConnectShopifyProduct($shopify,$ave);
     }
 }
