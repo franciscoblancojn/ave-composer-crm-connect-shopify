@@ -20,6 +20,12 @@ class AveCrmConnectShopify
      * @var AveCrmConnectShopifyProduct
      */
     public AveCrmConnectShopifyProduct $product;
+    /**
+     * Conector con Shopify con order.
+     *
+     * @var AveCrmConnectShopifyOrder
+     */
+    public AveCrmConnectShopifyOrder $order;
 
     /**
      * Constructor de la clase AveCrmConnectShopify.
@@ -33,5 +39,6 @@ class AveCrmConnectShopify
         $client = new AveCrmConnectShopifyHttpClient();
         $ave = new AveConnectShopifyApiAve($client);
         $this->product = new AveCrmConnectShopifyProduct($ave);
+        $this->order = new AveCrmConnectShopifyOrder($ave);
     }
 }

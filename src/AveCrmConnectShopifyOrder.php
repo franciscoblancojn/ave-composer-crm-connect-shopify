@@ -4,15 +4,47 @@ namespace franciscoblancojn\AveCrmConnectShopify;
 
 use franciscoblancojn\AveConnectShopify\AveConnectShopify;
 
+/**
+ * Clase para manejar la creación de órdenes en Shopify
+ * a partir de la información de un CRM y sincronizarla con
+ * múltiples tiendas Shopify asociadas a una empresa.
+ */
 class AveCrmConnectShopifyOrder
 {
-
+    /**
+     * Instancia del conector con Ave CRM → Shopify
+     *
+     * @var AveConnectShopifyApiAve
+     */
     public AveConnectShopifyApiAve $ave;
 
+    /**
+     * Constructor
+     *
+     * @param AveConnectShopifyApiAve $ave Instancia del conector Ave
+     */
     public function __construct(AveConnectShopifyApiAve $ave)
     {
         $this->ave = $ave;
     }
+
+    /**
+     * Genera el JSON con la estructura necesaria para crear
+     * una orden en Shopify.
+     *
+     * @param string $clientEmail     Email del cliente
+     * @param string $clientTel       Teléfono del cliente
+     * @param string $clientName      Nombre completo del cliente
+     * @param float  $grandTotal      Total de la orden
+     * @param float  $vat             Valor del IVA
+     * @param int    $pagado          1 = pagado, 0 = pendiente
+     * @param array  $orderItems      Ítems estructurados de la orden
+     * @param array  $orderProductName Lista de nombres de productos
+     * @param array  $orderPost       Datos crudos del request
+     * @param array  $products        Datos de referencia de productos
+     *
+     * @return array JSON de la orden listo para enviar a Shopify
+     */
     public function getJsonCreateShopifyOrder(
         string $clientEmail,
         string $clientTel,
@@ -20,26 +52,24 @@ class AveCrmConnectShopifyOrder
         float $grandTotal,
         float $vat,
         int $pagado,
-        array $orderItems = [],           // Estructura con ítems [{...}, {...}]
-        array $orderProductName = [],     // Alternativa si los nombres vienen por separado
-        array $orderPost = [],            // Datos crudos del request
-        array $products = []              // Productos de referencia
+        array $orderItems = [],
+        array $orderProductName = [],
+        array $orderPost = [],
+        array $products = []
     ) {
+        $orderItems = $orderPost['items'];
+        $orderProductName = $orderPost['productName'];
 
-        $orderItems = $_POST['items'];
-        $orderProductName = $_POST['productName'];
-        $orderPost = $_POST;
         $orderStructure = [
             "order" => [
                 "email" => $clientEmail,
                 "phone" => $clientTel,
                 "customer" => [
                     "email" => $clientEmail,
-                    "first_name" => $clientName, // Podrías necesitar dividir el nombre
-                    "last_name" => $clientName, // Extraer apellido del clientName
-                    // "phone" => $clientTel
+                    "first_name" => $clientName,
+                    "last_name" => $clientName,
                 ],
-                "line_items" => [], // Se llena con el bucle de productos
+                "line_items" => [],
                 "transactions" => [
                     [
                         "kind" => "sale",
@@ -48,17 +78,17 @@ class AveCrmConnectShopifyOrder
                     ]
                 ],
                 "total_tax" => (float) $vat,
-                "currency" => "COP" // Asumiendo pesos colombianos
+                "currency" => "COP"
             ]
         ];
 
-        // Llenar line_items basándose en los productos del pedido
+        // Caso 1: ítems estructurados
         if (isset($orderItems) && count($orderItems) > 0) {
             foreach ($orderItems as $orderItem) {
                 $orderStructure['order']['line_items'][] = [
                     "title" => $product['product_name'] ?? 'Producto',
                     "price" => (float) ($orderItem['rateValue'] ?? 0),
-                    "grams" => (string) (($orderItem['peso'] ?? 0.5) * 1000), // Convertir kg a gramos
+                    "grams" => (string) (($orderItem['peso'] ?? 0.5) * 1000),
                     "sku" => $orderItem['productRef'] ?? '',
                     "quantity" => (int) ($orderItem['quantity'] ?? 1),
                     "tax_lines" => [
@@ -70,7 +100,9 @@ class AveCrmConnectShopifyOrder
                     ]
                 ];
             }
-        } elseif (isset($orderProductName) && count($orderProductName) > 0) {
+        }
+        // Caso 2: nombres de productos por separado
+        elseif (isset($orderProductName) && count($orderProductName) > 0) {
             foreach ($orderProductName as $key => $productName) {
                 $orderStructure['order']['line_items'][] = [
                     "title" => $products[$key]['product_name'] ?? 'Producto',
@@ -88,8 +120,28 @@ class AveCrmConnectShopifyOrder
                 ];
             }
         }
+
         return $orderStructure;
     }
+
+    /**
+     * Envía la orden a todas las tiendas Shopify asociadas a una empresa.
+     *
+     * @param string $idempresa        ID de la empresa
+     * @param string $token            Token de autenticación del CRM
+     * @param string $clientEmail      Email del cliente
+     * @param string $clientTel        Teléfono del cliente
+     * @param string $clientName       Nombre completo del cliente
+     * @param float  $grandTotal       Total de la orden
+     * @param float  $vat              Valor del IVA
+     * @param int    $pagado           1 = pagado, 0 = pendiente
+     * @param array  $orderItems       Ítems estructurados de la orden
+     * @param array  $orderProductName Lista de nombres de productos
+     * @param array  $orderPost        Datos crudos del request
+     * @param array  $products         Datos de referencia de productos
+     *
+     * @return array|null Resultados de creación en cada tienda Shopify
+     */
     public function post(
         string $idempresa,
         string $token,
@@ -99,19 +151,22 @@ class AveCrmConnectShopifyOrder
         float $grandTotal,
         float $vat,
         int $pagado,
-        array $orderItems = [],           // Estructura con ítems [{...}, {...}]
-        array $orderProductName = [],     // Alternativa si los nombres vienen por separado
-        array $orderPost = [],            // Datos crudos del request
-        array $products = []              // Productos de referencia
+        array $orderItems = [],
+        array $orderProductName = [],
+        array $orderPost = [],
+        array $products = []
     ) {
+        // Obtener tokens de Shopify asociados a la empresa
         $tokensShopify = $this->ave->onGetTokenShopifyByCompany(
-            $idempresa,          // string
-            $token,              // string
+            $idempresa,
+            $token,
         );
+
         if ($tokensShopify == null) {
             return null;
         }
 
+        // Generar JSON de la orden
         $jsonOrderForCreate = $this->getJsonCreateShopifyOrder(
             $clientEmail,
             $clientTel,
@@ -124,10 +179,14 @@ class AveCrmConnectShopifyOrder
             $orderPost,
             $products
         );
+
         $resultCreateShopify = [];
+
+        // Enviar orden a cada tienda Shopify asociada
         for ($i = 0; $i < count($tokensShopify); $i++) {
             $shop = $tokensShopify[$i]['url'];
             $token = $tokensShopify[$i]['token'];
+
             try {
                 $shopify = new AveConnectShopify($shop, $token);
                 $result = $shopify->order->post($jsonOrderForCreate);
@@ -138,7 +197,7 @@ class AveCrmConnectShopifyOrder
                     "result" => $result,
                 ];
             } catch (\Throwable $e) {
-                $resultUpdateShopify[$shop] = [
+                $resultCreateShopify[$shop] = [
                     "shop" => $shop,
                     "send" => $jsonOrderForCreate,
                     "result" => null,
@@ -150,5 +209,4 @@ class AveCrmConnectShopifyOrder
 
         return $resultCreateShopify;
     }
-
 }
