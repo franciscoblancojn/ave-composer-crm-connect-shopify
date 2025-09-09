@@ -67,4 +67,26 @@ class AveConnectShopifyApiAve
             ['Authorization: ' . $token]
         );
     }
+    /**
+     * Obtiene los tokens de las tiendas Shopify asociadas a una empresa.
+     *
+     * @param string $idempresa ID de la empresa en AveCRM
+     * @param string $token     Token de autenticación para AveCRM
+     *
+     * @return array|null Lista de tiendas con URL y token, o null si no hay
+     */
+    public function onGetTokenShopifyByCompany(
+        string $idempresa,
+        string $token
+    ) {
+        try {
+            $data = $this->getShopsTokens($idempresa, $token);
+            if (!$data || !$data['data'] || count($data['data']) == 0) {
+                return null;
+            }
+            return $data['data'];
+        } catch (\Throwable $th) {
+            return null;
+        }
+    }
 }

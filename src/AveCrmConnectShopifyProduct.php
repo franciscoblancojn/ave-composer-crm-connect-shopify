@@ -213,29 +213,6 @@ class AveCrmConnectShopifyProduct
     }
 
     /**
-     * Obtiene los tokens de las tiendas Shopify asociadas a una empresa.
-     *
-     * @param string $idempresa ID de la empresa en AveCRM
-     * @param string $token     Token de autenticación para AveCRM
-     *
-     * @return array|null Lista de tiendas con URL y token, o null si no hay
-     */
-    private function onGetTokenShopifyByCompany(
-        string $idempresa,
-        string $token
-    ) {
-        try {
-            $data = $this->ave->getShopsTokens($idempresa, $token);
-            if (!$data || !$data['data'] || count($data['data']) == 0) {
-                return null;
-            }
-            return $data['data'];
-        } catch (\Throwable $th) {
-            return null;
-        }
-    }
-
-    /**
      * Publica un producto en Shopify en todas las tiendas asociadas a una empresa.
      *
      * @param string $idempresa    ID de la empresa en AveCRM
@@ -274,7 +251,7 @@ class AveCrmConnectShopifyProduct
         ?string $url = null,
         ?string $productId = null
     ) {
-        $tokensShopify = $this->onGetTokenShopifyByCompany(
+        $tokensShopify = $this->ave->onGetTokenShopifyByCompany(
             $idempresa,          // string
             $token,              // string
         );
@@ -369,7 +346,7 @@ class AveCrmConnectShopifyProduct
             throw new \InvalidArgumentException('El ID del producto es requerido para actualizar en Shopify');
         }
 
-        $tokensShopify = $this->onGetTokenShopifyByCompany(
+        $tokensShopify = $this->ave->onGetTokenShopifyByCompany(
             $idempresa,
             $token
         );
