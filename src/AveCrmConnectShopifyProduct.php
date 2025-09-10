@@ -429,8 +429,8 @@ class AveCrmConnectShopifyProduct
                         $jsonProductForUpdate['product']['id'] = $product_ref;
                     } else {
                         for ($k = 0; $k < count($jsonProductForUpdate['product']['variants']); $k++) {
-                            if ($jsonProductForUpdate['product']['variants'][$j]['id'] == $product_id) {
-                                $jsonProductForUpdate['product']['variants'][$j]['id'] = $product_ref;
+                            if ($jsonProductForUpdate['product']['variants'][$k]['id'] == $product_id) {
+                                $jsonProductForUpdate['product']['variants'][$k]['id'] = $product_ref;
                             }
                         }
                     }
