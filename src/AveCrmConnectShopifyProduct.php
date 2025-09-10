@@ -415,9 +415,28 @@ class AveCrmConnectShopifyProduct
             try {
                 $shopify = new AveConnectShopify($shop, $shopToken);
 
-                $product_ref_result = $this->ave->getProductIdRef($token,[$productId]);
+                $products_id = [$productId];
+                for ($j = 0; $j < count($jsonProductForUpdate['product']['variants'] ?? []); $j++) {
+                    $products_id[] = $jsonProductForUpdate['product']['variants'][$j]['id'];
+                }
+
+                $product_ref_result = $this->ave->getProductIdRef($token, $products_id);
                 $product_ref_data = $product_ref_result['data'];
                 $product_ref = $product_ref_data[0]['product_ref'];
+                $jsonProductForUpdate['product']['id'] = $product_ref;
+                for ($j = 0; $j < $product_ref_data; $j++) {
+                    $product_id = $product_ref_data[$j]['product_id'];
+                    $product_ref = $product_ref_data[$j]['product_ref'];
+                    if ($jsonProductForUpdate['product']['id'] == $product_id) {
+                        $jsonProductForUpdate['product']['id'] = $product_ref;
+                    } else {
+                        for ($k = 0; $k < count($jsonProductForUpdate['product']['variants']); $k++) {
+                            if ($jsonProductForUpdate['product']['variants'][$j]['id'] == $product_id) {
+                                $jsonProductForUpdate['product']['variants'][$j]['id'] = $product_ref;
+                            }
+                        }
+                    }
+                }
 
                 // El método put de AveConnectShopify requiere el ID del producto como primer parámetro
                 $result = $shopify->product->put($product_ref, $jsonProductForUpdate);
