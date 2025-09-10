@@ -127,4 +127,24 @@ class AveConnectShopifyApiAve
             $data
         );
     }
+
+    /**
+     * Obtener producto 
+     *
+     * @param string $token
+     * @param array<int, int> $products_id
+     */
+    public function getProductIdRef(
+        string $token,
+        array $products_id
+    ) {
+        return $this->client->request(
+            "GET",
+            "https://api.aveonline.co/api-shopify/public/api/productEcommerce",
+            ['Authorization: ' . $token],
+            [
+                "products_id" => $products_id
+            ]
+        );
+    }
 }

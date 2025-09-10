@@ -104,7 +104,7 @@ class AveCrmConnectShopifyProduct
                     $shopifyOptions[$key]["values"][$value] = $value;
                 }
                 $shopifyVariants[] = [
-                    "id"                  => $variant['id'],
+                    "id"                   => $variant['id'],
                     "title"                => $variant['name'] ?? "Variante " . ($i + 1),
                     "price"                => ($variant['price'] ?? $sugerido) . "",
                     "sku"                  => $variant['sku'] ?? $productRef,
@@ -414,6 +414,8 @@ class AveCrmConnectShopifyProduct
 
             try {
                 $shopify = new AveConnectShopify($shop, $shopToken);
+
+                $product_ref = 
 
                 // El método put de AveConnectShopify requiere el ID del producto como primer parámetro
                 $result = $shopify->product->put($productId, $jsonProductForUpdate);
