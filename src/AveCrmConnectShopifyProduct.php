@@ -292,7 +292,7 @@ class AveCrmConnectShopifyProduct
                 $products_refs[] = [
                     "product_id"  => $productId,
                     "parent_id"   => null,
-                    "product_ref" => $product_ref,
+                    "product_ref" => "$product_ref",
                     "token_id"    => $token_id,
                 ];
                 for ($j = 0; $j < count($variants); $j++) {
