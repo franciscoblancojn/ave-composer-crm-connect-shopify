@@ -437,7 +437,7 @@ class AveCrmConnectShopifyProduct
                 }
 
                 // El método put de AveConnectShopify requiere el ID del producto como primer parámetro
-                $result = $shopify->product->put($product_ref, $jsonProductForUpdate);
+                $result = $shopify->product->put($jsonProductForUpdate['product']['id'], $jsonProductForUpdate);
 
                 $resultUpdateShopify[$shop] = [
                     "shop" => $shop,
