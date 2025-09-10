@@ -415,10 +415,12 @@ class AveCrmConnectShopifyProduct
             try {
                 $shopify = new AveConnectShopify($shop, $shopToken);
 
-                $product_ref = 
+                $product_ref_result = $this->ave->getProductIdRef($token,[$productId]);
+                $product_ref_data = $product_ref_result['data'];
+                $product_ref = $product_ref_data[0]['product_ref'];
 
                 // El método put de AveConnectShopify requiere el ID del producto como primer parámetro
-                $result = $shopify->product->put($productId, $jsonProductForUpdate);
+                $result = $shopify->product->put($product_ref, $jsonProductForUpdate);
 
                 $resultUpdateShopify[$shop] = [
                     "shop" => $shop,
