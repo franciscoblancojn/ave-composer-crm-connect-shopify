@@ -297,8 +297,14 @@ class AveCrmConnectShopifyProduct
                 for ($j = 0; $j < count($variants); $j++) {
                     $variant_id = $variants['id'];
                     $variant_sku = $variants['sku'];
-                    $index = array_search($variant_sku, array_column($variantsResult, 'sku'));
-                    $product_ref = $index !== false ? $variantsResult[$index]['product_ref'] : null;
+                    // Buscar en $variantsResult el product_ref que coincida con el sku
+                    $product_ref = null;
+                    foreach ($variantsResult as $vr) {
+                        if ($vr['sku'] === $variant_sku) {
+                            $product_ref = $vr['id'];
+                            break;
+                        }
+                    }
                     $products_refs[] = [
                         "product_id"  => $variant_id,
                         "parent_id"   => $productId,
