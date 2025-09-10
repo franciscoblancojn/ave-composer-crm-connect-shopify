@@ -422,9 +422,7 @@ class AveCrmConnectShopifyProduct
 
                 $product_ref_result = $this->ave->getProductIdRef($token, $products_id);
                 $product_ref_data = $product_ref_result['data'];
-                $product_ref = $product_ref_data[0]['product_ref'];
-                $jsonProductForUpdate['product']['id'] = $product_ref;
-                for ($j = 0; $j < $product_ref_data; $j++) {
+                for ($j = 0; $j < count($product_ref_data); $j++) {
                     $product_id = $product_ref_data[$j]['product_id'];
                     $product_ref = $product_ref_data[$j]['product_ref'];
                     if ($jsonProductForUpdate['product']['id'] == $product_id) {
