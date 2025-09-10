@@ -89,4 +89,42 @@ class AveConnectShopifyApiAve
             return null;
         }
     }
+
+    /**
+     * Procesa un listado de productos para guardar las ids:
+     * [
+     *   [
+     *     "product_id" => 123,
+     *     "parent_id" => null,
+     *     "product_ref" => "REF-001",
+     *     "token_id" => 45
+     *   ],
+     *   [
+     *     "product_id" => 124,
+     *     "parent_id" => 123,
+     *     "product_ref" => "REF-002",
+     *     "token_id" => 45
+     *   ]
+     * ]
+     *
+     * @param string $token
+     * @param array<int, array{
+     *     product_id:int,
+     *     parent_id:int|null,
+     *     product_ref:string,
+     *     token_id:int
+     * }> $products
+     * @return array Lista normalizada de productos
+     */
+    public function postProductIdRef(
+        string $token,
+        array $data
+    ) {
+        return $this->client->request(
+            "POST",
+            "https://api.aveonline.co/api-shopify/public/api/productEcommerce",
+            ['Authorization: ' . $token],
+            $data
+        );
+    }
 }

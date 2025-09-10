@@ -104,6 +104,7 @@ class AveCrmConnectShopifyProduct
                     $shopifyOptions[$key]["values"][$value] = $value;
                 }
                 $shopifyVariants[] = [
+                    "id"                  => $variant['id'],
                     "title"                => $variant['name'] ?? "Variante " . ($i + 1),
                     "price"                => ($variant['price'] ?? $sugerido) . "",
                     "sku"                  => $variant['sku'] ?? $productRef,
@@ -276,16 +277,43 @@ class AveCrmConnectShopifyProduct
         );
         $resultCreateShopify = [];
         for ($i = 0; $i < count($tokensShopify); $i++) {
+            $token_id = $tokensShopify[$i]['id'];
             $shop = $tokensShopify[$i]['url'];
             $token = $tokensShopify[$i]['token'];
             try {
                 $shopify = new AveConnectShopify($shop, $token);
                 $result = $shopify->product->post($jsonProductForCreate);
+                $productResult = $result['product'];
+                $product_ref = $productResult['id'];
+                $variantsResult = $productResult['variants'];
+
+                $products_refs  = [];
+                $products_refs[] = [
+                    "product_id"  => $productId,
+                    "parent_id"   => null,
+                    "product_ref" => $product_ref,
+                    "token_id"    => $token_id,
+                ];
+                for ($j = 0; $j < count($variants); $j++) {
+                    $variant_id = $variants['id'];
+                    $variant_sku = $variants['sku'];
+                    $index = array_search($variant_sku, array_column($variantsResult, 'sku'));
+                    $product_ref = $index !== false ? $variantsResult[$index]['product_ref'] : null;
+                    $products_refs[] = [
+                        "product_id"  => $variant_id,
+                        "parent_id"   => $productId,
+                        "product_ref" => $product_ref,
+                        "token_id"    => $token_id,
+                    ];
+                }
+                $products_refs_result = $this->ave->postProductIdRef($token, $products_refs);
 
                 $resultCreateShopify[$shop] = [
                     "shop" => $shop,
                     "send" => $jsonProductForCreate,
                     "result" => $result,
+                    "products_refs" => $products_refs,
+                    "products_refs_result" => $products_refs_result,
                 ];
             } catch (\Throwable $e) {
                 $resultUpdateShopify[$shop] = [
