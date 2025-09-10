@@ -309,7 +309,7 @@ class AveCrmConnectShopifyProduct
                     $products_refs[] = [
                         "product_id"  => $variant_id,
                         "parent_id"   => $productId,
-                        "product_ref" => $product_ref,
+                        "product_ref" => "$product_ref",
                         "token_id"    => $token_id,
                     ];
                 }
