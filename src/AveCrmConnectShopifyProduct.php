@@ -283,9 +283,10 @@ class AveCrmConnectShopifyProduct
             try {
                 $shopify = new AveConnectShopify($shop, $token);
                 $result = $shopify->product->post($jsonProductForCreate);
-                $jsonProductForCreate = $result['product'];
-                $product_ref = $jsonProductForCreate['id'];
-                $variantsResult = $jsonProductForCreate['variants'];
+                $variants = $jsonProductForCreate['product']['variants'];
+                $productResult = $result['product'];
+                $product_ref = $productResult['id'];
+                $variantsResult = $productResult['variants'];
 
                 $products_refs  = [];
                 $products_refs[] = [
