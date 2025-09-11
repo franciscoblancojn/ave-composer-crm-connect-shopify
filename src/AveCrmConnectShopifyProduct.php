@@ -196,7 +196,7 @@ class AveCrmConnectShopifyProduct
             // "idempresa" => $idempresa,
             // "token" => $token,
             "product" => [
-                "id"                    => (string)($productId ?? ''), //PENDING::change to custom meta file
+                "id"                    => $productId  ? (string)($productId ?? '') : '', //PENDING::change to custom meta file
                 "title"                 => $productName,
                 "body_html"             => $productDesc ? $productDesc : "<strong>{$productName}</strong>",
                 "vendor"                => (string)$marcaName,
