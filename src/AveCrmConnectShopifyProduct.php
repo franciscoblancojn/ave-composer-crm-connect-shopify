@@ -155,7 +155,7 @@ class AveCrmConnectShopifyProduct
 
         // Quitamos la parte /api/createProduct.php y dejamos solo el root de tu app
         $basePath = str_replace('/api/createProduct.php', '', $script);
-        
+
         // Esto nos da algo como: http://localhost:3009/ave/avestock
         $baseUrl  = $scheme . '://' . $host . $basePath;
 
@@ -405,6 +405,7 @@ class AveCrmConnectShopifyProduct
 
         for ($i = 0; $i < count($tokensShopify); $i++) {
             $shop = $tokensShopify[$i]['url'];
+            $shopId = $tokensShopify[$i]['id'];
             $shopToken = $tokensShopify[$i]['token'];
 
             try {
@@ -420,12 +421,15 @@ class AveCrmConnectShopifyProduct
                 for ($j = 0; $j < count($product_ref_data); $j++) {
                     $product_id = $product_ref_data[$j]['product_id'];
                     $product_ref = $product_ref_data[$j]['product_ref'];
-                    if ($jsonProductForUpdate['product']['id'] == $product_id) {
-                        $jsonProductForUpdate['product']['id'] = $product_ref;
-                    } else {
-                        for ($k = 0; $k < count($jsonProductForUpdate['product']['variants']); $k++) {
-                            if ($jsonProductForUpdate['product']['variants'][$k]['id'] == $product_id) {
-                                $jsonProductForUpdate['product']['variants'][$k]['id'] = $product_ref;
+                    $product_token_id = $product_ref_data[$j]['token_id'];
+                    if ($product_token_id == $shopId) {
+                        if ($jsonProductForUpdate['product']['id'] == $product_id) {
+                            $jsonProductForUpdate['product']['id'] = $product_ref;
+                        } else {
+                            for ($k = 0; $k < count($jsonProductForUpdate['product']['variants']); $k++) {
+                                if ($jsonProductForUpdate['product']['variants'][$k]['id'] == $product_id) {
+                                    $jsonProductForUpdate['product']['variants'][$k]['id'] = $product_ref;
+                                }
                             }
                         }
                     }
