@@ -104,7 +104,7 @@ class AveCrmConnectShopifyProduct
                     $shopifyOptions[$key]["values"][$value] = $value;
                 }
                 $shopifyVariants[] = [
-                    "id"                   => $variant['id'],
+                    "id"                   => $variant['id'] ?? '',
                     "title"                => $variant['name'] ?? "Variante " . ($i + 1),
                     "price"                => ($variant['price'] ?? $sugerido) . "",
                     "sku"                  => $variant['sku'] ?? $productRef,
@@ -127,6 +127,7 @@ class AveCrmConnectShopifyProduct
         } else {
             // fallback: 1 variante por defecto
             $shopifyVariants[] = [
+                "id"                   => $productId  ? (string)($productId ?? '') : '',
                 "title"                => $productName,
                 "price"                => ($sugerido) . "",
                 "sku"                  => $productRef,
