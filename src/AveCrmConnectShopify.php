@@ -32,7 +32,7 @@ class AveCrmConnectShopify
      *
      * @param string $shop    El dominio de la tienda de Shopify (ejemplo: midominio.myshopify.com).
      * @param string $token   Token de acceso para la API de Shopify.
-     * @param string $version Versión de la API de Shopify a utilizar. Por defecto '2025-01'.
+     * @param string $version Versión de la API de Shopify a utilizar. Por defecto '2025-07'.
      */
     public function __construct()
     {
