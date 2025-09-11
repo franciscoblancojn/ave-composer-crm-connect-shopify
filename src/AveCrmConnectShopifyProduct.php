@@ -155,20 +155,14 @@ class AveCrmConnectShopifyProduct
 
         // Quitamos la parte /api/createProduct.php y dejamos solo el root de tu app
         $basePath = str_replace('/api/createProduct.php', '', $script);
-
+        
         // Esto nos da algo como: http://localhost:3009/ave/avestock
         $baseUrl  = $scheme . '://' . $host . $basePath;
 
-        // Ruta absoluta del proyecto en filesystem
-        $projectRoot = realpath(dirname(__FILE__) . '/..');
-        // ej: /opt/lampp/htdocs/ave/avestock
-
         // Ahora construimos la URL pública de la imagen
         $imagePath = $url; // viene de FileService::saveFile(), ej: ../public/images/stock/25505/file.webp
-        $imageRealPath = realpath(dirname(__FILE__) . '/' . $imagePath);
 
-        $imageUrl = str_replace($projectRoot, $baseUrl, $imageRealPath);
-        $imageUrl = str_replace(DIRECTORY_SEPARATOR, "/", $imageUrl);
+        $imageUrl = $baseUrl . str_replace("../", "/", $imagePath);
 
         // --- Images ---
         $shopifyImages = [];
