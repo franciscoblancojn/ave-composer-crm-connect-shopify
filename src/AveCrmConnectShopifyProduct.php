@@ -126,7 +126,13 @@ class AveCrmConnectShopifyProduct
                 ];
             }
         } else {
-            // fallback: 1 variante por defecto
+            $key = "default_variant";
+            $value = "default_variant";
+            $shopifyOptions[$key] ??= [
+                "name" => $key,
+                "values" => []
+            ];
+            $shopifyOptions[$key]["values"][$value] = $value;
             $shopifyVariants[] = [
                 "id"                   => $defaultVariantId ? ((string)($defaultVariantId ?? '')) : ($productId  ? (string)($productId ?? '') : ''),
                 "title"                => $productName,
@@ -134,7 +140,7 @@ class AveCrmConnectShopifyProduct
                 "sku"                  => $productRef,
                 "position"             => 1,
                 "inventory_policy"     => "deny",
-                "option1"              => null,
+                "option1"              => $value,
                 "fulfillment_service"  => "manual",
                 "grams"                => (int)$peso,
                 "inventory_management" => "shopify",
