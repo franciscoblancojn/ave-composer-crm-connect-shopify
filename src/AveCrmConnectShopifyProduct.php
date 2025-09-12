@@ -61,7 +61,8 @@ class AveCrmConnectShopifyProduct
         $etiquetas,
         array $variants = [],
         ?string $url = null,
-        ?string $productId = null
+        ?string $productId = null,
+        ?string $defaultVariantId = null
     ) {
         function make_handle($text)
         {
@@ -127,7 +128,7 @@ class AveCrmConnectShopifyProduct
         } else {
             // fallback: 1 variante por defecto
             $shopifyVariants[] = [
-                "id"                   => $productId  ? (string)($productId ?? '') : '',
+                "id"                   => $defaultVariantId ? ((string)($defaultVariantId ?? '')) : ($productId  ? (string)($productId ?? '') : ''),
                 "title"                => $productName,
                 "price"                => ($sugerido) . "",
                 "sku"                  => $productRef,
@@ -245,7 +246,8 @@ class AveCrmConnectShopifyProduct
         $etiquetas,
         array $variants = [],
         ?string $url = null,
-        ?string $productId = null
+        ?string $productId = null,
+        ?string $defaultVariantId = null
     ) {
         $tokensShopify = $this->ave->onGetTokenShopifyByCompany(
             $idempresa,          // string
@@ -268,7 +270,8 @@ class AveCrmConnectShopifyProduct
             $etiquetas,          // array
             $variants,           // array
             $url,                // ?string
-            $productId           // ?string
+            $productId,           // ?string
+            $defaultVariantId
         );
         $resultCreateShopify = [];
         for ($i = 0; $i < count($tokensShopify); $i++) {
