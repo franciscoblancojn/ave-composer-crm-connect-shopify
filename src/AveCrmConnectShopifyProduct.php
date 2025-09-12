@@ -175,32 +175,41 @@ class AveCrmConnectShopifyProduct
         // Esto nos da algo como: http://localhost:3009/ave/avestock
         $baseUrl  = $scheme . '://' . $host . $basePath;
 
+        function getImg($baseUrl, $productName, $url_img, $variant_ids = [])
+        {
+            $url_f =  $url_img ? ($baseUrl . str_replace("../", "/", $url_img)) : null;
+            return [
+                "alt"        => $productName,
+                "position"   => 1,
+                "width"      => 600,
+                "height"     => 600,
+                "src"        => $url_f,
+                "variant_ids" => $variant_ids
+            ];
+        }
+
         // Ahora construimos la URL pública de la imagen
         $imagePath = $url; // viene de FileService::saveFile(), ej: ../public/images/stock/25505/file.webp
+        if ($imagePath == null && $variants && count($variants) > 0 &&  $variants[0]["image_url"]) {
+            $imagePath = $variants[0]["image_url"];
+        }
 
-        $imageUrl = $baseUrl . str_replace("../", "/", $imagePath);
+        $principalImg = getImg($baseUrl, $productName, $imagePath);
 
         // --- Images ---
         $shopifyImages = [];
-        if (!empty($imageUrl)) {
-            $shopifyImages[] = [
-                "alt"        => $productName,
-                "position"   => 1,
-                "width"      => 600,
-                "height"     => 600,
-                "src"        => $imageUrl,
-                "variant_ids" => []
-            ];
-        } elseif (!empty($_FILES['productImage']['tmp_name'])) {
-            $shopifyImages[] = [
-                "alt"        => $productName,
-                "position"   => 1,
-                "width"      => 600,
-                "height"     => 600,
-                "src"        => $url, // path generado por FileService::saveFile()
-                "variant_ids" => []
-            ];
+
+        foreach ($variants as $i => $variant) {
+            $img = getImg(
+                $baseUrl,
+                $variant['name'],
+                $variant['image_url'],
+                [$variant['id']]
+            );
+            $shopifyImages[] = $img;
+            $variants[$i]['image'] = $img;
         }
+
 
         // --- Producto Shopify ---
         $shopifyProduct = [
@@ -218,7 +227,7 @@ class AveCrmConnectShopifyProduct
                 "options"               => $shopifyOptions,
                 "variants"              => $shopifyVariants,
                 "images"                => $shopifyImages,
-                "image"                 => !empty($shopifyImages) ? $shopifyImages[0] : null
+                "image"                 => $principalImg
             ]
         ];
         return $shopifyProduct;
@@ -336,7 +345,7 @@ class AveCrmConnectShopifyProduct
                     "products_refs_result" => $products_refs_result,
                 ];
             } catch (\Throwable $e) {
-                $resultUpdateShopify[$shop] = [
+                $resultCreateShopify[$shop] = [
                     "shop" => $shop,
                     "product_id" => $productId,
                     "send" => $jsonProductForCreate,
@@ -347,7 +356,10 @@ class AveCrmConnectShopifyProduct
             }
         }
 
-        return $resultCreateShopify;
+        return [
+            "resultCreateShopify" => $resultCreateShopify,
+            "tokensShopify" => $tokensShopify,
+        ];
     }
 
     /**
