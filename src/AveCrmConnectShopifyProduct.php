@@ -313,10 +313,15 @@ class AveCrmConnectShopifyProduct
                         }
                     }
                     if ($variant_img_id) {
-                        $variations_put[] = $shopify->variation->put($product_ref, [
+                        $s = [
                             "id" => $product_ref,
                             "image_id" => $variant_img_id,
-                        ]);
+                        ];
+                        $r = $shopify->variation->put($product_ref, $s);
+                        $variations_put[] = [
+                            "send"=>$s,
+                            "result"=>$r,
+                        ];
                     }
                     $products_refs[] = [
                         "product_id"  => $variant_id,
