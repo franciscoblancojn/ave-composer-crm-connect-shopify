@@ -75,11 +75,11 @@ class AveCrmConnectShopifyProduct
         // Esto nos da algo como: http://localhost:3009/ave/avestock
         $baseUrl  = $scheme . '://' . $host . $basePath;
 
-        function getImg($baseUrl, $productName, $url_img, $variant_ids = [])
+        function getImg($baseUrl, $name, $url_img, $variant_ids = [])
         {
             $url_f =  $url_img ? ($baseUrl . str_replace("../", "/", $url_img)) : null;
             return [
-                "alt"        => $productName,
+                "alt"        => $name,
                 "position"   => 1,
                 "width"      => 600,
                 "height"     => 600,
@@ -96,31 +96,19 @@ class AveCrmConnectShopifyProduct
         }
 
 
+        // Ahora construimos la URL pública de la imagen
+        $imagePath = $url; // viene de FileService::saveFile(), ej: ../public/images/stock/25505/file.webp
+
+        $principalImg = getImg($baseUrl, $productName, $imagePath);
         // --- Variants --- (si no hay variantes cargadas en $_POST['variants'])
         $shopifyVariants = [];
         $shopifyOptions = [];
         // --- Images ---
-        $shopifyImages = [];
+        $shopifyImages = $principalImg ? [$principalImg] : [];
 
-        //example 
-        // "options": [
-        //     {
-        //     "name": "Color",
-        //     "values": ["red", "blue", "green"]
-        //     },
-        //     {
-        //     "name": "Size",
-        //     "values": ["s", "m", "l", "xl"]
-        //     }
-        // ],
         if (!empty($variants)) {
             foreach ($variants as $i => $variant) {
                 $attributes = $variant['attributes'];
-                //example   
-                // "attributes": {
-                //     "color": "red",
-                //     "size": "s"
-                // }
                 $options = [];
                 foreach ($attributes as $key => $value) {
                     $options[] = $value;
@@ -132,7 +120,7 @@ class AveCrmConnectShopifyProduct
                 }
                 $img = getImg(
                     $baseUrl,
-                    $variant['name'],
+                    $variant['sku'] ?? $productRef,
                     $variant['image_url'],
                     // [$variant['id']]
                 );
@@ -156,7 +144,6 @@ class AveCrmConnectShopifyProduct
                     "weight_unit"          => "g",
                     "inventory_quantity"   => (int)($variant['stock'] ?? $unidades),
                     "old_inventory_quantity" => (int)($variant['stock'] ?? $unidades),
-                    "image"                 => $img
                 ];
             }
         } else {
@@ -199,19 +186,10 @@ class AveCrmConnectShopifyProduct
         }
         $shopifyOptions  = array_values($shopifyOptions);
 
-        // Ahora construimos la URL pública de la imagen
-        $imagePath = $url; // viene de FileService::saveFile(), ej: ../public/images/stock/25505/file.webp
-        if ($imagePath == null && $variants && count($variants) > 0 &&  $variants[0]["image_url"]) {
-            $imagePath = $variants[0]["image_url"];
-        }
-
-        $principalImg = getImg($baseUrl, $productName, $imagePath);
 
 
         // --- Producto Shopify ---
         $shopifyProduct = [
-            // "idempresa" => $idempresa,
-            // "token" => $token,
             "product" => [
                 "id"                    => $productId  ? (string)($productId ?? '') : '', //PENDING::change to custom meta file
                 "title"                 => $productName,
@@ -295,6 +273,7 @@ class AveCrmConnectShopifyProduct
             $defaultVariantId
         );
         $resultCreateShopify = [];
+        $variations_put = [];
         for ($i = 0; $i < count($tokensShopify); $i++) {
             $token_id = $tokensShopify[$i]['id'];
             $shop = $tokensShopify[$i]['url'];
@@ -306,6 +285,7 @@ class AveCrmConnectShopifyProduct
                 $productResult = $result['product'];
                 $product_ref = $productResult['id'];
                 $variantsResult = $productResult['variants'];
+                $imagesResult = $productResult['images'];
 
                 $products_refs  = [];
                 $products_refs[] = [
@@ -325,6 +305,19 @@ class AveCrmConnectShopifyProduct
                             break;
                         }
                     }
+                    $variant_img_id = null;
+                    foreach ($imagesResult as $img) {
+                        if ($img['alt'] === $variant_sku) {
+                            $variant_img_id = $img['id'];
+                            break;
+                        }
+                    }
+                    if ($variant_img_id) {
+                        $variations_put[] = $shopify->variation->put($product_ref, [
+                            "id" => $product_ref,
+                            "image_id" => $variant_img_id,
+                        ]);
+                    }
                     $products_refs[] = [
                         "product_id"  => $variant_id,
                         "parent_id"   => $productId,
@@ -338,6 +331,7 @@ class AveCrmConnectShopifyProduct
                     "shop" => $shop,
                     "send" => $jsonProductForCreate,
                     "result" => $result,
+                    "variations_put" => $variations_put,
                     "products_refs" => $products_refs,
                     "products_refs_result" => $products_refs_result,
                 ];
