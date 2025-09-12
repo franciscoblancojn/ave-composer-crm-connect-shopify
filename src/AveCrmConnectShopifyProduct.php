@@ -64,6 +64,29 @@ class AveCrmConnectShopifyProduct
         ?string $productId = null,
         ?string $defaultVariantId = null
     ) {
+        // Construir base URL dinámica
+        $scheme   = isset($_SERVER['REQUEST_SCHEME']) ? $_SERVER['REQUEST_SCHEME'] : 'http';
+        $host     = $_SERVER['HTTP_HOST']; // incluye dominio y puerto
+        $script   = $_SERVER['SCRIPT_NAME']; // ej: /ave/avestock/api/createProduct.php
+
+        // Quitamos la parte /api/createProduct.php y dejamos solo el root de tu app
+        $basePath = str_replace('/api/createProduct.php', '', $script);
+
+        // Esto nos da algo como: http://localhost:3009/ave/avestock
+        $baseUrl  = $scheme . '://' . $host . $basePath;
+
+        function getImg($baseUrl, $productName, $url_img, $variant_ids = [])
+        {
+            $url_f =  $url_img ? ($baseUrl . str_replace("../", "/", $url_img)) : null;
+            return [
+                "alt"        => $productName,
+                "position"   => 1,
+                "width"      => 600,
+                "height"     => 600,
+                "src"        => $url_f,
+                // "variant_ids" => $variant_ids
+            ];
+        }
         function make_handle($text)
         {
             $t = iconv('UTF-8', 'ASCII//TRANSLIT', $text);
@@ -76,6 +99,9 @@ class AveCrmConnectShopifyProduct
         // --- Variants --- (si no hay variantes cargadas en $_POST['variants'])
         $shopifyVariants = [];
         $shopifyOptions = [];
+        // --- Images ---
+        $shopifyImages = [];
+
         //example 
         // "options": [
         //     {
@@ -104,6 +130,13 @@ class AveCrmConnectShopifyProduct
                     ];
                     $shopifyOptions[$key]["values"][$value] = $value;
                 }
+                $img = getImg(
+                    $baseUrl,
+                    $variant['name'],
+                    $variant['image_url'],
+                    // [$variant['id']]
+                );
+                $shopifyImages[] = $img;
                 $shopifyVariants[] = [
                     "id"                   => $variant['id'] ?? '',
                     "title"                => $variant['name'] ?? "Variante " . ($i + 1),
@@ -123,6 +156,7 @@ class AveCrmConnectShopifyProduct
                     "weight_unit"          => "g",
                     "inventory_quantity"   => (int)($variant['stock'] ?? $unidades),
                     "old_inventory_quantity" => (int)($variant['stock'] ?? $unidades),
+                    "image"                 => $img
                 ];
             }
         } else {
@@ -164,29 +198,6 @@ class AveCrmConnectShopifyProduct
             $shopifyOptions[$key]["values"]  = array_values($shopifyOptions[$key]["values"]);
         }
         $shopifyOptions  = array_values($shopifyOptions);
-        // Construir base URL dinámica
-        $scheme   = isset($_SERVER['REQUEST_SCHEME']) ? $_SERVER['REQUEST_SCHEME'] : 'http';
-        $host     = $_SERVER['HTTP_HOST']; // incluye dominio y puerto
-        $script   = $_SERVER['SCRIPT_NAME']; // ej: /ave/avestock/api/createProduct.php
-
-        // Quitamos la parte /api/createProduct.php y dejamos solo el root de tu app
-        $basePath = str_replace('/api/createProduct.php', '', $script);
-
-        // Esto nos da algo como: http://localhost:3009/ave/avestock
-        $baseUrl  = $scheme . '://' . $host . $basePath;
-
-        function getImg($baseUrl, $productName, $url_img, $variant_ids = [])
-        {
-            $url_f =  $url_img ? ($baseUrl . str_replace("../", "/", $url_img)) : null;
-            return [
-                "alt"        => $productName,
-                "position"   => 1,
-                "width"      => 600,
-                "height"     => 600,
-                "src"        => $url_f,
-                "variant_ids" => $variant_ids
-            ];
-        }
 
         // Ahora construimos la URL pública de la imagen
         $imagePath = $url; // viene de FileService::saveFile(), ej: ../public/images/stock/25505/file.webp
@@ -195,20 +206,6 @@ class AveCrmConnectShopifyProduct
         }
 
         $principalImg = getImg($baseUrl, $productName, $imagePath);
-
-        // --- Images ---
-        $shopifyImages = [];
-
-        foreach ($variants as $i => $variant) {
-            $img = getImg(
-                $baseUrl,
-                $variant['name'],
-                $variant['image_url'],
-                [$variant['id']]
-            );
-            $shopifyImages[] = $img;
-            $variants[$i]['image'] = $img;
-        }
 
 
         // --- Producto Shopify ---
