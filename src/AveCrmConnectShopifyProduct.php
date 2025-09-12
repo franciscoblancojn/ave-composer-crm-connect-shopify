@@ -319,11 +319,18 @@ class AveCrmConnectShopifyProduct
                                 "image_id" => $variant_img_id,
                             ]
                         ];
-                        $r = $shopify->variation->put($product_ref, $s);
-                        $variations_put[] = [
-                            "send" => $s,
-                            "result" => $r,
-                        ];
+                        try {
+                            $r = $shopify->variation->put($product_ref, $s);
+                            $variations_put[] = [
+                                "send" => $s,
+                                "result" => $r,
+                            ];
+                        } catch (\Throwable $e) {
+                            $variations_put[] = [
+                                "send" => $s,
+                                "error" => $e->getMessage()
+                            ];
+                        }
                     }
                     $products_refs[] = [
                         "product_id"  => $variant_id,
