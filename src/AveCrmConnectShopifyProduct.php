@@ -75,16 +75,18 @@ class AveCrmConnectShopifyProduct
         // Esto nos da algo como: http://localhost:3009/ave/avestock
         $baseUrl  = $scheme . '://' . $host . $basePath;
 
-        function getImg($baseUrl, $name, $url_img, $variant_ids = [])
+        function getImg($baseUrl, $name, $url_img)
         {
             $url_f =  $url_img ? ($baseUrl . str_replace("../", "/", $url_img)) : null;
+            if ($url_f == null) {
+                return null;
+            }
             return [
                 "alt"        => $name,
                 "position"   => 1,
                 "width"      => 600,
                 "height"     => 600,
                 "src"        => $url_f,
-                // "variant_ids" => $variant_ids
             ];
         }
         function make_handle($text)
@@ -124,7 +126,9 @@ class AveCrmConnectShopifyProduct
                     $variant['image_url'],
                     // [$variant['id']]
                 );
-                $shopifyImages[] = $img;
+                if ($img) {
+                    $shopifyImages[] = $img;
+                }
                 $shopifyVariants[] = [
                     "id"                   => $variant['id'] ?? '',
                     "title"                => $variant['name'] ?? "Variante " . ($i + 1),
@@ -273,8 +277,8 @@ class AveCrmConnectShopifyProduct
             $defaultVariantId
         );
         $resultCreateShopify = [];
-        $variations_put = [];
         for ($i = 0; $i < count($tokensShopify); $i++) {
+            $variations_put = [];
             $token_id = $tokensShopify[$i]['id'];
             $shop = $tokensShopify[$i]['url'];
             $token = $tokensShopify[$i]['token'];
@@ -449,6 +453,7 @@ class AveCrmConnectShopifyProduct
         $jsonProductForUpdate_CONST = $jsonProductForUpdate;
 
         for ($i = 0; $i < count($tokensShopify); $i++) {
+            $variations_put = [];
             $jsonProductForUpdate = $jsonProductForUpdate_CONST;
             $shop = $tokensShopify[$i]['url'];
             $shopId = $tokensShopify[$i]['id'];
@@ -480,11 +485,45 @@ class AveCrmConnectShopifyProduct
                 // El método put de AveConnectShopify requiere el ID del producto como primer parámetro
                 $result = $shopify->product->put($jsonProductForUpdate['product']['id'], $jsonProductForUpdate);
 
+                $imagesResult = $result['product']['images'];
+                for ($j = 0; $j < count($jsonProductForUpdate['product']['variants']); $j++) {
+                    $product_ref = $jsonProductForUpdate['product']['variants'][$k]['id'];
+                    $variant_sku = $jsonProductForUpdate['product']['variants'][$k]['sku'];
+                    $variant_img_id = null;
+                    foreach ($imagesResult as $img) {
+                        if ($img['alt'] === $variant_sku) {
+                            $variant_img_id = $img['id'];
+                            break;
+                        }
+                    }
+                    if ($variant_img_id) {
+                        $s = [
+                            "variant" => [
+                                "id" => $product_ref,
+                                "image_id" => $variant_img_id,
+                            ]
+                        ];
+                        try {
+                            $r = $shopify->variation->put($product_ref, $s);
+                            $variations_put[] = [
+                                "send" => $s,
+                                "result" => $r,
+                            ];
+                        } catch (\Throwable $e) {
+                            $variations_put[] = [
+                                "send" => $s,
+                                "error" => $e->getMessage()
+                            ];
+                        }
+                    }
+                }
+
                 $resultUpdateShopify[$shop] = [
                     "shop" => $shop,
                     "product_id" => $productId,
                     "send" => $jsonProductForUpdate,
                     "result" => $result,
+                    "variations_put" => $variations_put,
                     "success" => true,
                     "product_ref_data" => $product_ref_data,
                     "product_ref_data_filter" => $product_ref_data_filter,
