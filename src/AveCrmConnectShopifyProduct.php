@@ -78,8 +78,11 @@ class AveCrmConnectShopifyProduct
 
         function getImg($baseUrl, $name, $url_img)
         {
-            $url_f =  $url_img ? ($baseUrl . str_replace("../", "/", $url_img)) : null;
-            if ($url_f == null) {
+            // "image_url": "stock\/..\/public\/images\/stock\/25505\/13755990068c4848803366.webp",
+            $url_f =  $url_img ? ($baseUrl .  $url_img) : "";
+            $url_f =  str_replace("stock/../", "/", $url_f);
+            $url_f =  str_replace("../", "/", $url_f);
+            if ($url_f == "") {
                 return null;
             }
             return [
