@@ -421,7 +421,18 @@ class AveCrmConnectShopifyProduct
 
         $resultUpdateShopify = [];
 
+        $products_id = [$productId];
+        for ($j = 0; $j < count($jsonProductForUpdate['product']['variants'] ?? []); $j++) {
+            $products_id[] = $jsonProductForUpdate['product']['variants'][$j]['id'];
+        }
+
+        $product_ref_result = $this->ave->getProductIdRef($token, $products_id);
+        $product_ref_data = $product_ref_result['data'];
+
+        $jsonProductForUpdate_CONST = $jsonProductForUpdate;
+
         for ($i = 0; $i < count($tokensShopify); $i++) {
+            $jsonProductForUpdate = $jsonProductForUpdate_CONST;
             $shop = $tokensShopify[$i]['url'];
             $shopId = $tokensShopify[$i]['id'];
             $shopToken = $tokensShopify[$i]['token'];
@@ -429,25 +440,20 @@ class AveCrmConnectShopifyProduct
             try {
                 $shopify = new AveConnectShopify($shop, $shopToken);
 
-                $products_id = [$productId];
-                for ($j = 0; $j < count($jsonProductForUpdate['product']['variants'] ?? []); $j++) {
-                    $products_id[] = $jsonProductForUpdate['product']['variants'][$j]['id'];
-                }
-
-                $product_ref_result = $this->ave->getProductIdRef($token, $products_id);
-                $product_ref_data = $product_ref_result['data'];
-                $product_ref_data = array_filter($product_ref_data, function ($e) use ($shopId) {
-                    return $e['token_id'] === $shopId;
-                });
-                for ($j = 0; $j < count($product_ref_data); $j++) {
-                    $product_id = $product_ref_data[$j]['product_id'];
-                    $product_ref = $product_ref_data[$j]['product_ref'];
+                $product_ref_data_filter = array_values(array_filter($product_ref_data, function ($e) use ($shopId) {
+                    return $e['token_id'] == $shopId;
+                }));
+                for ($j = 0; $j < count($product_ref_data_filter); $j++) {
+                    $product_id = $product_ref_data_filter[$j]['product_id'];
+                    $product_ref = $product_ref_data_filter[$j]['product_ref'];
 
                     if ($jsonProductForUpdate['product']['id'] == $product_id) {
+                        $jsonProductForUpdate['product']['id_ave'] = $product_id;
                         $jsonProductForUpdate['product']['id'] = $product_ref;
                     } else {
                         for ($k = 0; $k < count($jsonProductForUpdate['product']['variants']); $k++) {
                             if ($jsonProductForUpdate['product']['variants'][$k]['id'] == $product_id) {
+                                $jsonProductForUpdate['product']['variants'][$k]['id_ave'] = $product_id;
                                 $jsonProductForUpdate['product']['variants'][$k]['id'] = $product_ref;
                             }
                         }
@@ -462,7 +468,9 @@ class AveCrmConnectShopifyProduct
                     "product_id" => $productId,
                     "send" => $jsonProductForUpdate,
                     "result" => $result,
-                    "success" => true
+                    "success" => true,
+                    "product_ref_data" => $product_ref_data,
+                    "product_ref_data_filter" => $product_ref_data_filter,
                 ];
             } catch (\Throwable $e) {
                 $resultUpdateShopify[$shop] = [
