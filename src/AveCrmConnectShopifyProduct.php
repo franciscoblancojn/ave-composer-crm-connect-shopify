@@ -71,6 +71,7 @@ class AveCrmConnectShopifyProduct
 
         // Quitamos la parte /api/createProduct.php y dejamos solo el root de tu app
         $basePath = str_replace('/api/createProduct.php', '', $script);
+        $basePath = str_replace('/api/editProduct.php', '', $basePath);
 
         // Esto nos da algo como: http://localhost:3009/ave/avestock
         $baseUrl  = $scheme . '://' . $host . $basePath;
