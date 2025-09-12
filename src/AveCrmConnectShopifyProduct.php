@@ -151,6 +151,15 @@ class AveCrmConnectShopifyProduct
                 "old_inventory_quantity" => (int)$unidades,
             ];
         }
+        if (count($shopifyOptions) == 0) {
+            $key = "default_variant";
+            $value = "default_variant";
+            $shopifyOptions[$key] ??= [
+                "name" => $key,
+                "values" => []
+            ];
+            $shopifyOptions[$key]["values"][$value] = $value;
+        }
         foreach ($shopifyOptions as $key => $value) {
             $shopifyOptions[$key]["values"]  = array_values($shopifyOptions[$key]["values"]);
         }
