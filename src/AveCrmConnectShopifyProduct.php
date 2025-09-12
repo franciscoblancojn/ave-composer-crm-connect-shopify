@@ -436,18 +436,19 @@ class AveCrmConnectShopifyProduct
 
                 $product_ref_result = $this->ave->getProductIdRef($token, $products_id);
                 $product_ref_data = $product_ref_result['data'];
+                $product_ref_data = array_filter($product_ref_data, function ($e) use ($shopId) {
+                    return $e['token_id'] === $shopId;
+                });
                 for ($j = 0; $j < count($product_ref_data); $j++) {
                     $product_id = $product_ref_data[$j]['product_id'];
                     $product_ref = $product_ref_data[$j]['product_ref'];
-                    $product_token_id = $product_ref_data[$j]['token_id'];
-                    if ($product_token_id == $shopId) {
-                        if ($jsonProductForUpdate['product']['id'] == $product_id) {
-                            $jsonProductForUpdate['product']['id'] = $product_ref;
-                        } else {
-                            for ($k = 0; $k < count($jsonProductForUpdate['product']['variants']); $k++) {
-                                if ($jsonProductForUpdate['product']['variants'][$k]['id'] == $product_id) {
-                                    $jsonProductForUpdate['product']['variants'][$k]['id'] = $product_ref;
-                                }
+
+                    if ($jsonProductForUpdate['product']['id'] == $product_id) {
+                        $jsonProductForUpdate['product']['id'] = $product_ref;
+                    } else {
+                        for ($k = 0; $k < count($jsonProductForUpdate['product']['variants']); $k++) {
+                            if ($jsonProductForUpdate['product']['variants'][$k]['id'] == $product_id) {
+                                $jsonProductForUpdate['product']['variants'][$k]['id'] = $product_ref;
                             }
                         }
                     }
