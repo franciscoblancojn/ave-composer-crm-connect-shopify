@@ -489,10 +489,11 @@ class AveCrmConnectShopifyProduct
                 // El método put de AveConnectShopify requiere el ID del producto como primer parámetro
                 $result = $shopify->product->put($jsonProductForUpdate['product']['id'], $jsonProductForUpdate);
 
+                $variationResult = $result['product']['variants'];
                 $imagesResult = $result['product']['images'];
-                for ($j = 0; $j < count($jsonProductForUpdate['product']['variants']); $j++) {
-                    $product_ref = $jsonProductForUpdate['product']['variants'][$k]['id'];
-                    $variant_sku = $jsonProductForUpdate['product']['variants'][$k]['sku'];
+                for ($j = 0; $j < count($variationResult); $j++) {
+                    $product_ref = $variationResult[$j]['id'];
+                    $variant_sku = $variationResult[$j]['sku'];
                     $variant_img_id = null;
                     foreach ($imagesResult as $img) {
                         if ($img['alt'] === $variant_sku) {
