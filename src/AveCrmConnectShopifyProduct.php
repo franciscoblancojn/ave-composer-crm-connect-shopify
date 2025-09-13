@@ -254,9 +254,10 @@ class AveCrmConnectShopifyProduct
         array $variants = [],
         ?string $url = null,
         ?string $productId = null,
-        ?string $defaultVariantId = null
+        ?string $defaultVariantId = null,
+        ?array $tokensShopify_forUse = null
     ) {
-        $tokensShopify = $this->ave->onGetTokenShopifyByCompany(
+        $tokensShopify = $tokensShopify_forUse ?? $this->ave->onGetTokenShopifyByCompany(
             $idempresa,          // string
             $token,              // string
         );
