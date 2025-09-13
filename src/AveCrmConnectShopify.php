@@ -15,6 +15,12 @@ namespace franciscoblancojn\AveCrmConnectShopify;
 class AveCrmConnectShopify 
 {
     /**
+     * Conector con Shopify con ave.
+     *
+     * @var AveConnectShopifyApiAve
+     */
+    public AveConnectShopifyApiAve $ave;
+    /**
      * Conector con Shopify con productos.
      *
      * @var AveCrmConnectShopifyProduct
@@ -38,6 +44,7 @@ class AveCrmConnectShopify
     {
         $client = new AveCrmConnectShopifyHttpClient();
         $ave = new AveConnectShopifyApiAve($client);
+        $this->ave = $ave;
         $this->product = new AveCrmConnectShopifyProduct($ave);
         $this->order = new AveCrmConnectShopifyOrder($ave);
     }
