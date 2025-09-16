@@ -289,7 +289,7 @@ class AveCrmConnectShopifyProduct
             $token = $tokensShopify[$i]['token'];
             try {
                 $shopify = new AveConnectShopify($shop, $token);
-                $result = $shopify->product->post($jsonProductForCreate);
+                $result = $shopify->productGraphQL->post($jsonProductForCreate);
                 $variants = $jsonProductForCreate['product']['variants'];
                 $productResult = $result['product'];
                 $product_ref = $productResult['id'];
@@ -314,33 +314,33 @@ class AveCrmConnectShopifyProduct
                             break;
                         }
                     }
-                    $variant_img_id = null;
-                    foreach ($imagesResult as $img) {
-                        if ($img['alt'] === $variant_sku) {
-                            $variant_img_id = $img['id'];
-                            break;
-                        }
-                    }
-                    if ($variant_img_id) {
-                        $s = [
-                            "variant" => [
-                                "id" => $product_ref,
-                                "image_id" => $variant_img_id,
-                            ]
-                        ];
-                        try {
-                            $r = $shopify->variation->put($product_ref, $s);
-                            $variations_put[] = [
-                                "send" => $s,
-                                "result" => $r,
-                            ];
-                        } catch (\Throwable $e) {
-                            $variations_put[] = [
-                                "send" => $s,
-                                "error" => $e->getMessage()
-                            ];
-                        }
-                    }
+                    // $variant_img_id = null;
+                    // foreach ($imagesResult as $img) {
+                    //     if ($img['alt'] === $variant_sku) {
+                    //         $variant_img_id = $img['id'];
+                    //         break;
+                    //     }
+                    // }
+                    // if ($variant_img_id) {
+                    //     $s = [
+                    //         "variant" => [
+                    //             "id" => $product_ref,
+                    //             "image_id" => $variant_img_id,
+                    //         ]
+                    //     ];
+                    //     try {
+                    //         $r = $shopify->variation->put($product_ref, $s);
+                    //         $variations_put[] = [
+                    //             "send" => $s,
+                    //             "result" => $r,
+                    //         ];
+                    //     } catch (\Throwable $e) {
+                    //         $variations_put[] = [
+                    //             "send" => $s,
+                    //             "error" => $e->getMessage()
+                    //         ];
+                    //     }
+                    // }
                     $products_refs[] = [
                         "product_id"  => $variant_id,
                         "parent_id"   => $productId,
