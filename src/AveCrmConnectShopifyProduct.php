@@ -206,7 +206,7 @@ class AveCrmConnectShopifyProduct
                 "product_type"          => (string)$categoryName,
                 "handle"                => make_handle($productName),
                 "tags"                  => is_array($etiquetas) ? implode(',', $etiquetas) : (string)$etiquetas,
-                "status"                => ($productStatus == 1 ? "draft" : "active"),
+                "status"                => ($productStatus == 1 ? "DRAFT" : "ACTIVE"),
                 "options"               => $shopifyOptions,
                 "variants"              => $shopifyVariants,
                 "images"                => $shopifyImages,
