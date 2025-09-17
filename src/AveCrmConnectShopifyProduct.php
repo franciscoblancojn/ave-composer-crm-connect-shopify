@@ -124,12 +124,15 @@ class AveCrmConnectShopifyProduct
                     ];
                     $shopifyOptions[$key]["values"][$value] = $value;
                 }
-                $img = getImg(
-                    $baseUrl,
-                    $variant['sku'] ?? $productRef,
-                    $variant['image_url'],
-                    // [$variant['id']]
-                );
+                $img = null;
+                if ($img) {
+                    $img = getImg(
+                        $baseUrl,
+                        $variant['sku'] ?? $productRef,
+                        $variant['image_url'],
+                        // [$variant['id']]
+                    );
+                }
                 if ($img) {
                     $shopifyImages[] = $img;
                 }
@@ -204,7 +207,7 @@ class AveCrmConnectShopifyProduct
                 "body_html"             => $productDesc ? $productDesc : "<strong>{$productName}</strong>",
                 "vendor"                => (string)$marcaName,
                 "product_type"          => (string)$categoryName,
-                "handle"                => make_handle($productName),
+                "handle"                => make_handle($productName).$productRef,
                 "tags"                  => is_array($etiquetas) ? implode(',', $etiquetas) : (string)$etiquetas,
                 "status"                => ($productStatus == 1 ? "DRAFT" : "ACTIVE"),
                 "options"               => $shopifyOptions,
@@ -293,7 +296,7 @@ class AveCrmConnectShopifyProduct
                 $variants = $jsonProductForCreate['product']['variants'];
                 $productResult = $result['product'];
                 $product_ref = $productResult['id'];
-                $variantsResult = $productResult['variants'];
+                $variantsResult = $result['variants'];
                 $imagesResult = $productResult['images'];
 
                 $products_refs  = [];
