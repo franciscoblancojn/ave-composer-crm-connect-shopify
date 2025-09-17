@@ -125,7 +125,7 @@ class AveCrmConnectShopifyProduct
                     $shopifyOptions[$key]["values"][$value] = $value;
                 }
                 $img = null;
-                if ($img) {
+                if ($variant['image_url']) {
                     $img = getImg(
                         $baseUrl,
                         $variant['sku'] ?? $productRef,
