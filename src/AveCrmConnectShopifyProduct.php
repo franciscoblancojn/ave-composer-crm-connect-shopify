@@ -499,41 +499,41 @@ class AveCrmConnectShopifyProduct
                 }
 
                 // El método put de AveConnectShopify requiere el ID del producto como primer parámetro
-                $result = $shopify->product->put($jsonProductForUpdate['product']['id'], $jsonProductForUpdate);
+                $result = $shopify->productGraphQL->put($jsonProductForUpdate['product']['id'], $jsonProductForUpdate);
 
-                $variationResult = $result['product']['variants'];
-                $imagesResult = $result['product']['images'];
-                for ($j = 0; $j < count($variationResult); $j++) {
-                    $product_ref = $variationResult[$j]['id'];
-                    $variant_sku = $variationResult[$j]['sku'];
-                    $variant_img_id = null;
-                    foreach ($imagesResult as $img) {
-                        if ($img['alt'] === $variant_sku) {
-                            $variant_img_id = $img['id'];
-                            break;
-                        }
-                    }
-                    if ($variant_img_id) {
-                        $s = [
-                            "variant" => [
-                                "id" => $product_ref,
-                                "image_id" => $variant_img_id,
-                            ]
-                        ];
-                        try {
-                            $r = $shopify->variation->put($product_ref, $s);
-                            $variations_put[] = [
-                                "send" => $s,
-                                "result" => $r,
-                            ];
-                        } catch (\Throwable $e) {
-                            $variations_put[] = [
-                                "send" => $s,
-                                "error" => $e->getMessage()
-                            ];
-                        }
-                    }
-                }
+                // $variationResult = $result['product']['variants'];
+                // $imagesResult = $result['product']['images'];
+                // for ($j = 0; $j < count($variationResult); $j++) {
+                //     $product_ref = $variationResult[$j]['id'];
+                //     $variant_sku = $variationResult[$j]['sku'];
+                    // $variant_img_id = null;
+                    // foreach ($imagesResult as $img) {
+                    //     if ($img['alt'] === $variant_sku) {
+                    //         $variant_img_id = $img['id'];
+                    //         break;
+                    //     }
+                    // }
+                    // if ($variant_img_id) {
+                    //     $s = [
+                    //         "variant" => [
+                    //             "id" => $product_ref,
+                    //             "image_id" => $variant_img_id,
+                    //         ]
+                    //     ];
+                    //     try {
+                    //         $r = $shopify->variation->put($product_ref, $s);
+                    //         $variations_put[] = [
+                    //             "send" => $s,
+                    //             "result" => $r,
+                    //         ];
+                    //     } catch (\Throwable $e) {
+                    //         $variations_put[] = [
+                    //             "send" => $s,
+                    //             "error" => $e->getMessage()
+                    //         ];
+                    //     }
+                    // }
+                // }
 
                 $resultUpdateShopify[$shop] = [
                     "shop" => $shop,
