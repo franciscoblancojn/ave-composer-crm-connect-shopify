@@ -125,7 +125,7 @@ class AveCrmConnectShopifyProduct
                     $shopifyOptions[$key]["values"][$value] = $value;
                 }
                 $img = null;
-                if ($variant['image_url']) {
+                if (!empty($variant['image_url'])) { // <-- evita undefined index
                     $img = getImg(
                         $baseUrl,
                         $variant['sku'] ?? $productRef,
@@ -207,7 +207,7 @@ class AveCrmConnectShopifyProduct
                 "body_html"             => $productDesc ? $productDesc : "<strong>{$productName}</strong>",
                 "vendor"                => (string)$marcaName,
                 "product_type"          => (string)$categoryName,
-                "handle"                => make_handle($productName).$productRef,
+                "handle"                => make_handle($productName) . $productRef,
                 "tags"                  => is_array($etiquetas) ? implode(',', $etiquetas) : (string)$etiquetas,
                 "status"                => ($productStatus == 1 ? "DRAFT" : "ACTIVE"),
                 "options"               => $shopifyOptions,
@@ -310,17 +310,16 @@ class AveCrmConnectShopifyProduct
                 ];
                 for ($j = 0; $j < count($variants); $j++) {
                     $variant_id = $variants[$j]['id'];
-                    $variant_dropshipping_id = null ;
-                    if($variants[$j] && $variants[$j]['dropshipping_id']){
-                       $variant_dropshipping_id =  $variants[$j]['dropshipping_id'];
-                    }
+                    $variant_dropshipping_id = $variants[$j]['dropshipping_id'] ?? null;
                     $variant_sku = $variants[$j]['sku'];
                     // Buscar en $variantsResult el product_ref que coincida con el sku
                     $product_ref = null;
-                    foreach ($variantsResult as $vr) {
-                        if ($vr['sku'] === $variant_sku) {
-                            $product_ref = $vr['id'];
-                            break;
+                    if ($variant_sku && !empty($variantsResult)) {
+                        foreach ($variantsResult as $vr) {
+                            if (($vr['sku'] ?? null) === $variant_sku) {
+                                $product_ref = $vr['id'] ?? null;
+                                break;
+                            }
                         }
                     }
                     // $variant_img_id = null;
@@ -506,33 +505,33 @@ class AveCrmConnectShopifyProduct
                 // for ($j = 0; $j < count($variationResult); $j++) {
                 //     $product_ref = $variationResult[$j]['id'];
                 //     $variant_sku = $variationResult[$j]['sku'];
-                    // $variant_img_id = null;
-                    // foreach ($imagesResult as $img) {
-                    //     if ($img['alt'] === $variant_sku) {
-                    //         $variant_img_id = $img['id'];
-                    //         break;
-                    //     }
-                    // }
-                    // if ($variant_img_id) {
-                    //     $s = [
-                    //         "variant" => [
-                    //             "id" => $product_ref,
-                    //             "image_id" => $variant_img_id,
-                    //         ]
-                    //     ];
-                    //     try {
-                    //         $r = $shopify->variation->put($product_ref, $s);
-                    //         $variations_put[] = [
-                    //             "send" => $s,
-                    //             "result" => $r,
-                    //         ];
-                    //     } catch (\Throwable $e) {
-                    //         $variations_put[] = [
-                    //             "send" => $s,
-                    //             "error" => $e->getMessage()
-                    //         ];
-                    //     }
-                    // }
+                // $variant_img_id = null;
+                // foreach ($imagesResult as $img) {
+                //     if ($img['alt'] === $variant_sku) {
+                //         $variant_img_id = $img['id'];
+                //         break;
+                //     }
+                // }
+                // if ($variant_img_id) {
+                //     $s = [
+                //         "variant" => [
+                //             "id" => $product_ref,
+                //             "image_id" => $variant_img_id,
+                //         ]
+                //     ];
+                //     try {
+                //         $r = $shopify->variation->put($product_ref, $s);
+                //         $variations_put[] = [
+                //             "send" => $s,
+                //             "result" => $r,
+                //         ];
+                //     } catch (\Throwable $e) {
+                //         $variations_put[] = [
+                //             "send" => $s,
+                //             "error" => $e->getMessage()
+                //         ];
+                //     }
+                // }
                 // }
 
                 $resultUpdateShopify[$shop] = [
