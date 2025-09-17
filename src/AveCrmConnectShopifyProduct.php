@@ -258,7 +258,8 @@ class AveCrmConnectShopifyProduct
         ?string $url = null,
         ?string $productId = null,
         ?string $defaultVariantId = null,
-        ?array $tokensShopify_forUse = null
+        ?array $tokensShopify_forUse = null,
+        ?string $product_dropshipping_id = null
     ) {
         $tokensShopify = $tokensShopify_forUse ?? $this->ave->onGetTokenShopifyByCompany(
             $idempresa,          // string
@@ -282,7 +283,7 @@ class AveCrmConnectShopifyProduct
             $variants,           // array
             $url,                // ?string
             $productId,           // ?string
-            $defaultVariantId
+            $defaultVariantId,
         );
         $resultCreateShopify = [];
         for ($i = 0; $i < count($tokensShopify); $i++) {
@@ -304,9 +305,12 @@ class AveCrmConnectShopifyProduct
                     "parent_id"   => null,
                     "product_ref" => "$product_ref",
                     "token_id"    => $token_id,
+                    "product_type"    => $product_dropshipping_id ? 2 : 1,
+                    "product_dropshipping_id"    => $product_dropshipping_id,
                 ];
                 for ($j = 0; $j < count($variants); $j++) {
                     $variant_id = $variants[$j]['id'];
+                    $variant_dropshipping_id = $variants[$j]['dropshipping_id'];
                     $variant_sku = $variants[$j]['sku'];
                     // Buscar en $variantsResult el product_ref que coincida con el sku
                     $product_ref = null;
@@ -348,6 +352,8 @@ class AveCrmConnectShopifyProduct
                         "parent_id"   => $productId,
                         "product_ref" => "$product_ref",
                         "token_id"    => $token_id,
+                        "product_type"    => $variant_dropshipping_id ? 2 : 1,
+                        "product_dropshipping_id"    => $variant_dropshipping_id,
                     ];
                 }
                 $products_refs_result = $this->ave->postProductIdRef($token, $products_refs);
