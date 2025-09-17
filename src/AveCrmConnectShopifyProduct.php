@@ -294,10 +294,9 @@ class AveCrmConnectShopifyProduct
                 $shopify = new AveConnectShopify($shop, $token);
                 $result = $shopify->productGraphQL->post($jsonProductForCreate);
                 $variants = $jsonProductForCreate['product']['variants'];
-                $productResult = $result['product'];
+                $productResult = $result['productCreate']['product'];
                 $product_ref = $productResult['id'];
                 $variantsResult = $result['variants'];
-                $imagesResult = $productResult['images'];
 
                 $products_refs  = [];
                 $products_refs[] = [
