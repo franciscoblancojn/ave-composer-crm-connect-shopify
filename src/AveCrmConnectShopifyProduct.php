@@ -310,7 +310,10 @@ class AveCrmConnectShopifyProduct
                 ];
                 for ($j = 0; $j < count($variants); $j++) {
                     $variant_id = $variants[$j]['id'];
-                    $variant_dropshipping_id = $variants[$j]['dropshipping_id'];
+                    $variant_dropshipping_id = null ;
+                    if($variants[$j] && $variants[$j]['dropshipping_id']){
+                       $variant_dropshipping_id =  $variants[$j]['dropshipping_id'];
+                    }
                     $variant_sku = $variants[$j]['sku'];
                     // Buscar en $variantsResult el product_ref que coincida con el sku
                     $product_ref = null;
