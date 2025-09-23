@@ -157,7 +157,7 @@ class AveCrmConnectShopifyProduct
                     "old_inventory_quantity" => (int)($variant['stock'] ?? $unidades),
                 ];
             }
-        } else {
+        } else if($defaultVariantId != -1) {
             $key = "default_variant";
             $value = "default_variant";
             $shopifyOptions[$key] ??= [
