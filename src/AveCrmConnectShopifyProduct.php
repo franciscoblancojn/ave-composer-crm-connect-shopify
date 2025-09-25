@@ -29,6 +29,35 @@ class AveCrmConnectShopifyProduct
         $this->ave = $ave;
     }
 
+
+    function getImg($baseUrl, $name, $url_img)
+    {
+        // "image_url": "stock\/..\/public\/images\/stock\/25505\/13755990068c4848803366.webp",
+        $url_f =  $url_img ? ($baseUrl .  $url_img) : "";
+        $url_f =  str_replace("stock/../", "/", $url_f);
+        $url_f =  str_replace("../", "/", $url_f);
+        if ($url_f == "") {
+            return null;
+        }
+        if (preg_match('/^https?:\/\//', $url_img)) {
+            $url_f = $url_img;
+        }
+        return [
+            "alt"        => $name,
+            "position"   => 1,
+            "width"      => 600,
+            "height"     => 600,
+            "src"        => $url_f,
+        ];
+    }
+    function make_handle($text)
+    {
+        $t = iconv('UTF-8', 'ASCII//TRANSLIT', $text);
+        $t = preg_replace('/[^a-zA-Z0-9]+/', '-', $t);
+        $t = trim($t, '-');
+        return strtolower($t);
+    }
+
     /**
      * Construye el JSON de creación de producto en Shopify.
      *
@@ -76,39 +105,10 @@ class AveCrmConnectShopifyProduct
         // Esto nos da algo como: http://localhost:3009/ave/avestock
         $baseUrl  = $scheme . '://' . $host . $basePath;
 
-        function getImg($baseUrl, $name, $url_img)
-        {
-            // "image_url": "stock\/..\/public\/images\/stock\/25505\/13755990068c4848803366.webp",
-            $url_f =  $url_img ? ($baseUrl .  $url_img) : "";
-            $url_f =  str_replace("stock/../", "/", $url_f);
-            $url_f =  str_replace("../", "/", $url_f);
-            if ($url_f == "") {
-                return null;
-            }
-            if (preg_match('/^https?:\/\//', $url_img)) {
-                $url_f = $url_img;
-            }
-            return [
-                "alt"        => $name,
-                "position"   => 1,
-                "width"      => 600,
-                "height"     => 600,
-                "src"        => $url_f,
-            ];
-        }
-        function make_handle($text)
-        {
-            $t = iconv('UTF-8', 'ASCII//TRANSLIT', $text);
-            $t = preg_replace('/[^a-zA-Z0-9]+/', '-', $t);
-            $t = trim($t, '-');
-            return strtolower($t);
-        }
-
-
         // Ahora construimos la URL pública de la imagen
         $imagePath = $url; // viene de FileService::saveFile(), ej: ../public/images/stock/25505/file.webp
 
-        $principalImg = getImg($baseUrl, $productName, $imagePath);
+        $principalImg = $this->getImg($baseUrl, $productName, $imagePath);
         // --- Variants --- (si no hay variantes cargadas en $_POST['variants'])
         $shopifyVariants = [];
         $shopifyOptions = [];
@@ -129,7 +129,7 @@ class AveCrmConnectShopifyProduct
                 }
                 $img = null;
                 if (!empty($variant['image_url'])) { // <-- evita undefined index
-                    $img = getImg(
+                    $img =  $this->getImg(
                         $baseUrl,
                         $variant['sku'] ?? $productRef,
                         $variant['image_url'],
@@ -210,7 +210,7 @@ class AveCrmConnectShopifyProduct
                 "body_html"             => $productDesc ? $productDesc : "<strong>{$productName}</strong>",
                 "vendor"                => (string)$marcaName,
                 "product_type"          => (string)$categoryName,
-                "handle"                => make_handle($productName . $productRef),
+                "handle"                =>  $this->make_handle($productName . $productRef),
                 "tags"                  => is_array($etiquetas) ? implode(',', $etiquetas) : (string)$etiquetas,
                 "status"                => ($productStatus == 1 ? "DRAFT" : "ACTIVE"),
                 "options"               => $shopifyOptions,
@@ -299,7 +299,7 @@ class AveCrmConnectShopifyProduct
                 $result = $shopify->productGraphQL->post($jsonProductForCreate);
                 $variants = $jsonProductForCreate['product']['variants'];
                 $productResult = $result['productCreate']['product'] ?? null;
-                $product_ref = $productResult ? null : $productResult['id'];
+                $product_ref = $productResult ? $productResult['id'] : null;
                 $variantsResult = $result['variants'] ?? [];
 
                 $products_refs  = [];
@@ -426,7 +426,8 @@ class AveCrmConnectShopifyProduct
         $etiquetas,
         array $variants = [],
         ?string $url = null,
-        string $productId = null
+        string $productId = null,
+        ?string $product_dropshipping_id = null
     ) {
         // Validar que el productId sea requerido para actualización
         if (empty($productId)) {
@@ -483,6 +484,7 @@ class AveCrmConnectShopifyProduct
                 $product_ref_data_filter = array_values(array_filter($product_ref_data, function ($e) use ($shopId) {
                     return $e['token_id'] == $shopId;
                 }));
+                $product_exits = false;
                 for ($j = 0; $j < count($product_ref_data_filter); $j++) {
                     $product_id = $product_ref_data_filter[$j]['product_id'];
                     $product_ref = $product_ref_data_filter[$j]['product_ref'];
@@ -490,6 +492,7 @@ class AveCrmConnectShopifyProduct
                     if ($jsonProductForUpdate['product']['id'] == $product_id) {
                         $jsonProductForUpdate['product']['id_ave'] = $product_id;
                         $jsonProductForUpdate['product']['id'] = $product_ref;
+                        $product_exits = true;
                     } else {
                         for ($k = 0; $k < count($jsonProductForUpdate['product']['variants']); $k++) {
                             if ($jsonProductForUpdate['product']['variants'][$k]['id'] == $product_id) {
@@ -499,43 +502,31 @@ class AveCrmConnectShopifyProduct
                         }
                     }
                 }
+                $result = null;
+                if (!$product_exits) {
+                    $result = $this->post(
+                        $idempresa,
+                        $token,
+                        $productName,
+                        $productRef,
+                        $sugerido,
+                        $peso,
+                        $unidades,
+                        $marcaName,
+                        $categoryName,
+                        $productStatus,
+                        $productDesc,
+                        $etiquetas,
+                        $variants,
+                        $url,
+                        null,
+                        null,
+                    );
+                } else {
+                    // El método put de AveConnectShopify requiere el ID del producto como primer parámetro
+                    $result = $shopify->productGraphQL->put($jsonProductForUpdate);
+                }
 
-                // El método put de AveConnectShopify requiere el ID del producto como primer parámetro
-                $result = $shopify->productGraphQL->put($jsonProductForUpdate);
-
-                // $variationResult = $result['product']['variants'];
-                // $imagesResult = $result['product']['images'];
-                // for ($j = 0; $j < count($variationResult); $j++) {
-                //     $product_ref = $variationResult[$j]['id'];
-                //     $variant_sku = $variationResult[$j]['sku'];
-                // $variant_img_id = null;
-                // foreach ($imagesResult as $img) {
-                //     if ($img['alt'] === $variant_sku) {
-                //         $variant_img_id = $img['id'];
-                //         break;
-                //     }
-                // }
-                // if ($variant_img_id) {
-                //     $s = [
-                //         "variant" => [
-                //             "id" => $product_ref,
-                //             "image_id" => $variant_img_id,
-                //         ]
-                //     ];
-                //     try {
-                //         $r = $shopify->variation->put($product_ref, $s);
-                //         $variations_put[] = [
-                //             "send" => $s,
-                //             "result" => $r,
-                //         ];
-                //     } catch (\Throwable $e) {
-                //         $variations_put[] = [
-                //             "send" => $s,
-                //             "error" => $e->getMessage()
-                //         ];
-                //     }
-                // }
-                // }
 
                 $resultUpdateShopify[$shop] = [
                     "shop" => $shop,
