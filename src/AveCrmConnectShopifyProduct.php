@@ -85,6 +85,9 @@ class AveCrmConnectShopifyProduct
             if ($url_f == "") {
                 return null;
             }
+            if (preg_match('/^https?:\/\//', $url_img)) {
+                $url_f = $url_img;
+            }
             return [
                 "alt"        => $name,
                 "position"   => 1,
@@ -157,7 +160,7 @@ class AveCrmConnectShopifyProduct
                     "old_inventory_quantity" => (int)($variant['stock'] ?? $unidades),
                 ];
             }
-        } else if($defaultVariantId != -1) {
+        } else if ($defaultVariantId != -1) {
             $key = "default_variant";
             $value = "default_variant";
             $shopifyOptions[$key] ??= [
@@ -183,7 +186,7 @@ class AveCrmConnectShopifyProduct
                 "old_inventory_quantity" => (int)$unidades,
             ];
         }
-        if (count($shopifyOptions) == 0) {
+        if (count($shopifyOptions) == 0 && $defaultVariantId != -1) {
             $key = "default_variant";
             $value = "default_variant";
             $shopifyOptions[$key] ??= [
