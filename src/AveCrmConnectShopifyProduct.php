@@ -181,7 +181,7 @@ class AveCrmConnectShopifyProduct
                 "inventory_management" => "shopify",
                 "requires_shipping"    => true,
                 "weight"               => (float)$peso,
-                "weight_unit"          => "g",
+                "weight_unit"          => "kg",
                 "inventory_quantity"   => (int)$unidades,
                 "old_inventory_quantity" => (int)$unidades,
             ];
