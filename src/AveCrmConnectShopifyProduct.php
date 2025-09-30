@@ -216,7 +216,8 @@ class AveCrmConnectShopifyProduct
                 "options"               => $shopifyOptions,
                 "variants"              => $shopifyVariants,
                 "images"                => $shopifyImages,
-                "image"                 => $principalImg
+                "image"                 => $principalImg,
+                "categoryName"          => $categoryName, // custom field   
             ]
         ];
         return $shopifyProduct;
