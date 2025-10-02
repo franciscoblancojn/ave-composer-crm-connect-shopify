@@ -147,4 +147,23 @@ class AveConnectShopifyApiAve
             ]
         );
     }
+    /**
+     * Obtener producto 
+     *
+     * @param string $token
+     * @param array<int, int> $product_dropshipping_id
+     */
+    public function getDropshippingIdRef(
+        string $token,
+        array $product_dropshipping_id
+    ) {
+        return $this->client->request(
+            "GET",
+            "https://api.aveonline.co/api-shopify/public/api/productEcommerce",
+            ['Authorization: ' . $token],
+            [
+                "product_dropshipping_id" => $product_dropshipping_id
+            ]
+        );
+    }
 }

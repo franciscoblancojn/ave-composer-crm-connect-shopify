@@ -158,6 +158,7 @@ class AveCrmConnectShopifyProduct
                     "weight_unit"          => "g",
                     "inventory_quantity"   => (int)($variant['stock'] ?? $unidades),
                     "old_inventory_quantity" => (int)($variant['stock'] ?? $unidades),
+                    "dropshipping_id"       => $variant['dropshipping_id'] ?? null,
                 ];
             }
         } else if ($defaultVariantId != -1) {
@@ -184,6 +185,7 @@ class AveCrmConnectShopifyProduct
                 "weight_unit"          => "kg",
                 "inventory_quantity"   => (int)$unidades,
                 "old_inventory_quantity" => (int)$unidades,
+                "dropshipping_id"       => null,
             ];
         }
         if (count($shopifyOptions) == 0 && $defaultVariantId != -1) {
@@ -326,33 +328,6 @@ class AveCrmConnectShopifyProduct
                             }
                         }
                     }
-                    // $variant_img_id = null;
-                    // foreach ($imagesResult as $img) {
-                    //     if ($img['alt'] === $variant_sku) {
-                    //         $variant_img_id = $img['id'];
-                    //         break;
-                    //     }
-                    // }
-                    // if ($variant_img_id) {
-                    //     $s = [
-                    //         "variant" => [
-                    //             "id" => $product_ref,
-                    //             "image_id" => $variant_img_id,
-                    //         ]
-                    //     ];
-                    //     try {
-                    //         $r = $shopify->variation->put($product_ref, $s);
-                    //         $variations_put[] = [
-                    //             "send" => $s,
-                    //             "result" => $r,
-                    //         ];
-                    //     } catch (\Throwable $e) {
-                    //         $variations_put[] = [
-                    //             "send" => $s,
-                    //             "error" => $e->getMessage()
-                    //         ];
-                    //     }
-                    // }
                     $products_refs[] = [
                         "product_id"  => $variant_id,
                         "parent_id"   => $productId,
@@ -462,13 +437,29 @@ class AveCrmConnectShopifyProduct
 
         $resultUpdateShopify = [];
 
-        $products_id = [$productId];
-        for ($j = 0; $j < count($jsonProductForUpdate['product']['variants'] ?? []); $j++) {
-            $products_id[] = $jsonProductForUpdate['product']['variants'][$j]['id'];
+
+        $product_ref_data = null;
+        if ($product_dropshipping_id) {
+            $products_dropshipping_id = [$product_dropshipping_id];
+            for ($j = 0; $j < count($jsonProductForUpdate['product']['variants'] ?? []); $j++) {
+                if ($jsonProductForUpdate['product']['variants'][$j]['dropshipping_id']) {
+                    $products_dropshipping_id[] = $jsonProductForUpdate['product']['variants'][$j]['dropshipping_id'];
+                }
+            }
+
+            $product_dropshipping_ref_result = $this->ave->getProductIdRef($token, $products_dropshipping_id);
+            $product_ref_data = $product_dropshipping_ref_result['data'];
+        }
+        if ($product_ref_data == null) {
+            $products_id = [$productId];
+            for ($j = 0; $j < count($jsonProductForUpdate['product']['variants'] ?? []); $j++) {
+                $products_id[] = $jsonProductForUpdate['product']['variants'][$j]['id'];
+            }
+
+            $product_ref_result = $this->ave->getProductIdRef($token, $products_id);
+            $product_ref_data = $product_ref_result['data'];
         }
 
-        $product_ref_result = $this->ave->getProductIdRef($token, $products_id);
-        $product_ref_data = $product_ref_result['data'];
 
         $jsonProductForUpdate_CONST = $jsonProductForUpdate;
 
