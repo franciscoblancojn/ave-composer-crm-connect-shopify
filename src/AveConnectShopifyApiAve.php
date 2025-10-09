@@ -67,6 +67,63 @@ class AveConnectShopifyApiAve
             ['Authorization: ' . $token]
         );
     }
+
+    /**
+     * Obtiene el token de la tienda Shopify asociada a un agente.
+     *
+     * @param string $idempresa ID de la empresa en AveCRM.
+     * @param string $token Token de autenticaci n para AveCRM.
+     * @param int $agentId ID del agente en AveCRM.
+     *
+     * @return array|null Token de la tienda Shopify asociada al agente, o null si no hay
+     *
+     * @throws \Exception Si ocurre un error durante la petición HTTP
+     */
+    public function getAgentShopToken(
+        string $idempresa,
+        string $token,
+        int $agentId
+    ) {
+
+        return $this->client->request(
+            "GET",
+            "https://api.aveonline.co/api-shopify/public/api/token/$idempresa/$agentId",
+            ['Authorization: ' . $token]
+        );
+        
+    }
+
+
+    /**
+     * Obtiene el token de la tienda Shopify asociada a un agente.
+     *
+     * @param string $idempresa ID de la empresa en AveCRM
+     * @param string $token     Token de autenticaci n para AveCRM
+     * @param int $agentId ID del agente en AveCRM
+     *
+     * @return array|null Token de la tienda Shopify asociada al agente, o null si no hay
+     *
+     * @throws \Exception Si ocurre un error durante la petici n HTTP
+     */
+    public function onGetTokenShopifyByCompanyAgent(
+        string $idempresa,
+        string $token,
+        int $agentId
+    ) {
+        try {
+            $data = $this->getAgentShopToken($idempresa, $token, $agentId);
+            if (!$data || !$data['data'] || count($data['data']) == 0) {
+                return null;
+            }
+            return $data['data'][0];
+        } catch (\Throwable $th) {
+            return array(
+                'error' => $th->getMessage()
+            );
+        }
+    }
+
+
     /**
      * Obtiene los tokens de las tiendas Shopify asociadas a una empresa.
      *
@@ -145,6 +202,23 @@ class AveConnectShopifyApiAve
             [
                 "products_id" => $products_id
             ]
+        );
+    }
+
+    /**
+     * Obtener orden Shopify
+     * 
+     * @param string $token
+     * @param string $order_number, número de la orden guardada en el log de Ave
+     */
+    public function getShopifyOrderNumber(
+        string $token,
+        string $order_number
+    ) {
+        return $this->client->request(
+            "GET",
+            "https://api.aveonline.co/api-shopify/public/api/orders/log/$order_number",
+            ['Authorization: ' . $token]
         );
     }
 }
