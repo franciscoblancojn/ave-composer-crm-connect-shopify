@@ -258,11 +258,11 @@ class AveCrmConnectShopifyOrder
                 "orderId" => $orderId
             );
         }
-        
+
 
         try {
             $shopify = new AveConnectShopify($tokenShopify['url'], $tokenShopify['token']);
-            $cancelResponse = $shopify->orderGraphQL->cancelOrder($shopifyOrderId, $cancelReason );
+            $cancelResponse = $shopify->orderGraphQL->cancelOrder($shopifyOrderId, $cancelReason);
         } catch (\Throwable $th) {
             //throw $th;
             $cancelResponse = array(
@@ -270,6 +270,114 @@ class AveCrmConnectShopifyOrder
             );
         }
         return $cancelResponse;
+    }
 
+
+    private function getConfigSendDataOrder(
+        string $orderId,
+        int $companyId,
+        string $token,
+        int $agentId
+    ) {
+        if (empty($orderId)) {
+            throw new \InvalidArgumentException("El ID de la orden no puede estar vacio.");
+        }
+        if (empty($companyId)) {
+            throw new \InvalidArgumentException("El ID de la empresa no puede estar vacio.");
+        }
+        if (empty($token)) {
+            throw new \InvalidArgumentException("El token no puede estar vacio.");
+        }
+        if (empty($agentId)) {
+            throw new \InvalidArgumentException("El ID del agente no puede estar vacio.");
+        }
+
+        $tokenShopify = $this->ave->onGetTokenShopifyByCompanyAgent(
+            $companyId,
+            $token,
+            $agentId
+        );
+        if ($tokenShopify == null) {
+            throw new \InvalidArgumentException("No se encontraron tiendas Shopify asociadas a la empresa y agente.");
+        }
+
+        $existingOrder = null;
+        $existingOrder = $this->ave->getShopifyOrderNumber($token, $orderId);
+        if ($existingOrder == null || empty($existingOrder)) {
+            throw new \InvalidArgumentException("No se encontraron ordenes de Shopify asociadas al  ID de la orden.");
+        }
+
+        $shopifyOrderId = $existingOrder[0]['shopify_order_id'] ?? null;
+        if (empty($shopifyOrderId)) {
+            throw new \InvalidArgumentException("No se encontraron ordenes de Shopify asociadas al  ID de la orden.");
+        }
+
+        return array(
+            "tokenShopify" => $tokenShopify,
+            "shopifyOrderId" => $shopifyOrderId,
+        );
+    }
+    public function addNote(
+        string $orderId,
+        int $companyId,
+        string $token,
+        int $agentId,
+        string $note
+    ) {
+        try {
+            $config = $this->getConfigSendDataOrder(
+                $orderId,
+                $companyId,
+                $token,
+                $agentId
+            );
+            $tokenShopify = $config['tokenShopify'];
+            $shopifyOrderId = $config['shopifyOrderId'];
+
+            $shopify = new AveConnectShopify($tokenShopify['url'], $tokenShopify['token']);
+            $result = $shopify->orderGraphQL->addNote($shopifyOrderId, $note);
+            return array(
+                "success" => true,
+                "result" => $result
+            );
+        } catch (\Throwable $th) {
+            //throw $th;
+            return array(
+                "success" => false,
+                "error" => $th->getMessage(),
+            );
+        }
+    }
+
+    public function addTimelineComment(
+        string $orderId,
+        int $companyId,
+        string $token,
+        int $agentId,
+        string $message
+    ) {
+        try {
+            $config = $this->getConfigSendDataOrder(
+                $orderId,
+                $companyId,
+                $token,
+                $agentId
+            );
+            $tokenShopify = $config['tokenShopify'];
+            $shopifyOrderId = $config['shopifyOrderId'];
+
+            $shopify = new AveConnectShopify($tokenShopify['url'], $tokenShopify['token']);
+            $result = $shopify->orderGraphQL->addTimelineComment($shopifyOrderId, $message);
+            return array(
+                "success" => true,
+                "result" => $result
+            );
+        } catch (\Throwable $th) {
+            //throw $th;
+            return array(
+                "success" => false,
+                "error" => $th->getMessage(),
+            );
+        }
     }
 }
