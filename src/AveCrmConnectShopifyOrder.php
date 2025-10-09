@@ -209,4 +209,67 @@ class AveCrmConnectShopifyOrder
 
         return $resultCreateShopify;
     }
+
+    /**
+     * Cancela la orden en todas la tienda Shopify asociada a una empresa y agente.
+     *
+     */
+    public function cancelOrder(string $orderId, int $companyId, string $token, int $agentId, string $cancelReason = "DECLINED")
+    {
+        if (empty($orderId)) {
+            throw new \InvalidArgumentException("El ID de la orden no puede estar vacio.");
+        }
+        if (empty($companyId)) {
+            throw new \InvalidArgumentException("El ID de la empresa no puede estar vacio.");
+        }
+        if (empty($token)) {
+            throw new \InvalidArgumentException("El token no puede estar vacio.");
+        }
+        if (empty($agentId)) {
+            throw new \InvalidArgumentException("El ID del agente no puede estar vacio.");
+        }
+
+        $tokenShopify = $this->ave->onGetTokenShopifyByCompanyAgent(
+            $companyId,
+            $token,
+            $agentId
+        );
+
+        if ($tokenShopify == null) {
+            return array(
+                "error" => "No se encontraron tiendas Shopify asociadas a la empresa y agente.",
+            );
+        }
+
+        $existingOrder = null;
+        $existingOrder = $this->ave->getShopifyOrderNumber($token, $orderId);
+
+        if ($existingOrder == null || empty($existingOrder)) {
+            return array(
+                "error" => "No se encontraron ordenes de Shopify asociadas al  ID de la orden.",
+            );
+        }
+
+        $shopifyOrderId = $existingOrder[0]['shopify_order_id'] ?? null;
+
+        if (empty($shopifyOrderId)) {
+            return array(
+                "error" => "No se encontraron ordenes de Shopify asociadas al  ID de la orden.",
+                "orderId" => $orderId
+            );
+        }
+        
+
+        try {
+            $shopify = new AveConnectShopify($tokenShopify['url'], $tokenShopify['token']);
+            $cancelResponse = $shopify->orderGraphQL->cancelOrder($shopifyOrderId, $cancelReason );
+        } catch (\Throwable $th) {
+            //throw $th;
+            $cancelResponse = array(
+                "error" => $th->getMessage(),
+            );
+        }
+        return $cancelResponse;
+
+    }
 }
