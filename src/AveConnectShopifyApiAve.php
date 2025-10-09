@@ -207,7 +207,7 @@ class AveConnectShopifyApiAve
 
     /**
      * Obtener orden Shopify
-     * 
+     *
      * @param string $token
      * @param string $order_number, número de la orden guardada en el log de Ave
      */
@@ -219,6 +219,25 @@ class AveConnectShopifyApiAve
             "GET",
             "https://api.aveonline.co/api-shopify/public/api/orders/log/$order_number",
             ['Authorization: ' . $token]
+        );
+    }
+    /**
+     * Obtener producto
+     *
+     * @param string $token
+     * @param array<int, int> $product_dropshipping_id
+     */
+    public function getDropshippingIdRef(
+        string $token,
+        array $product_dropshipping_id
+    ) {
+        return $this->client->request(
+            "GET",
+            "https://api.aveonline.co/api-shopify/public/api/productEcommerce",
+            ['Authorization: ' . $token],
+            [
+                "product_dropshipping_id" => $product_dropshipping_id
+            ]
         );
     }
 }
