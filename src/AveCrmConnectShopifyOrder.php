@@ -335,13 +335,17 @@ class AveCrmConnectShopifyOrder
             $shopifyOrderId = $config['shopifyOrderId'];
 
             $shopify = new AveConnectShopify($tokenShopify['url'], $tokenShopify['token']);
-            $result = $shopify->orderGraphQL->addNote($shopifyOrderId, $note);
+            $result = $shopify->orderGraphQL->addNote([
+                "order" => [
+                    "id" => $shopifyOrderId,
+                    "note" => $note
+                ]
+            ]);
             return array(
                 "success" => true,
                 "result" => $result
             );
         } catch (\Throwable $th) {
-            //throw $th;
             return array(
                 "success" => false,
                 "error" => $th->getMessage(),
@@ -367,13 +371,17 @@ class AveCrmConnectShopifyOrder
             $shopifyOrderId = $config['shopifyOrderId'];
 
             $shopify = new AveConnectShopify($tokenShopify['url'], $tokenShopify['token']);
-            $result = $shopify->orderGraphQL->addTimelineComment($shopifyOrderId, $message);
+            $result = $shopify->orderGraphQL->addTimelineComment([
+                "order" => [
+                    "id" => $shopifyOrderId,
+                    "message" => $message
+                ]
+            ]);
             return array(
                 "success" => true,
                 "result" => $result
             );
         } catch (\Throwable $th) {
-            //throw $th;
             return array(
                 "success" => false,
                 "error" => $th->getMessage(),
