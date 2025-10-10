@@ -1,11 +1,11 @@
 {
   "name": "franciscoblancojn-ave-composer-crm-connect-shopify",
   "description": "Libreria para conectar con Shopify",
-  "version": "1.4.13",
+  "version": "1.4.14",
   "main": "index.js",
   "scripts": {
     "update": "rm -rf vendor && rm composer.lock && composer install",
-    "push-tag": "git tag v1.4.13 && git push origin v1.4.13",
+    "push-tag": "git tag v1.4.14 && git push origin v1.4.14",
     "fix-1": "composer config -g repo.packagist composer https://repo.packagist.org",
     "fix-2": "COMPOSER_ALLOW_SUPERUSER=1 COMPOSER_DISABLE_NETWORK=0 COMPOSER_CURL_IGNORE_X509=1 composer install -vvv --prefer-dist --ignore-platform-reqs -- --ipv4",
     "fix-3": "composer install --ignore-platform-reqs"
