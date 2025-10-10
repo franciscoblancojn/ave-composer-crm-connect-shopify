@@ -432,7 +432,7 @@ class AveCrmConnectShopifyOrder
                         $resutChangeStatus = $shopify->orderGraphQL->openOrder($shopifyOrderId);
                         break;
 
-                    case 'en reparto':
+                    case 'en reparto':///
                         $resutChangeStatus = $shopify->orderGraphQL->fulfillOrder($shopifyOrderId);
                         break;
 
