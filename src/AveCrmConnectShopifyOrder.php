@@ -388,4 +388,96 @@ class AveCrmConnectShopifyOrder
             );
         }
     }
+
+
+    public function changeStatus(
+        string $orderId,
+        int $companyId,
+        string $token,
+        int $agentId,
+        string $status
+    ) {
+        try {
+            $config = $this->getConfigSendDataOrder(
+                $orderId,
+                $companyId,
+                $token,
+                $agentId
+            );
+            $tokenShopify = $config['tokenShopify'];
+            $shopifyOrderId = $config['shopifyOrderId'];
+
+            $shopify = new AveConnectShopify($tokenShopify['url'], $tokenShopify['token']);
+            $resultNote = $shopify->orderGraphQL->addNote([
+                "order" => [
+                    "id" => $shopifyOrderId,
+                    "note" => "Nota desde Aveonline - estado de pedido: " . $status
+                ]
+            ]);
+            $resutChangeStatus = null;
+            try {
+
+                // 2️⃣ Normalizar el nombre del status (por si llega con mayúsculas o tildes)
+                $statusNormalized = strtolower(trim($status));
+
+                // 3️⃣ Determinar la acción en Shopify según el status AveOnline
+                switch ($statusNormalized) {
+                    case 'solicitada':
+                    case 'sin confirmar':
+                    case 'pre confirmado':
+                    case 'en alistamiento':
+                    case 'lista para despacho':
+                    case 'procesando guia':
+                    case 'en devolucion':
+                        $resutChangeStatus = $shopify->orderGraphQL->openOrder($shopifyOrderId);
+                        break;
+
+                    case 'en reparto':
+                        $resutChangeStatus = $shopify->orderGraphQL->fulfillOrder($shopifyOrderId);
+                        break;
+
+                    case 'entregada':
+                        $resutChangeStatus = $shopify->orderGraphQL->closeOrder($shopifyOrderId);
+                        break;
+
+                    case 'anulada':
+                    case 'anulada full':
+                        $resutChangeStatus = $shopify->orderGraphQL->archiveOrder($shopifyOrderId);
+                        break;
+
+                    case 'modificado por comprador':
+                    case 'error en cobertura':
+                    case 'direccion incompleta':
+                    case 'sin producto':
+                    case 'sin inventario':
+                    case 'preparado por otro operador':
+                    case 'novedad':
+                        $resutChangeStatus = $shopify->orderGraphQL->unarchiveOrder($shopifyOrderId);
+                        break;
+
+                    default:
+                        $resutChangeStatus = [
+                            "success" => false,
+                            "error" => "Estado no reconocido: {$status}"
+                        ];
+                        break;
+                }
+            } catch (\Throwable $th) {
+                $resutChangeStatus = array(
+                    "success" => false,
+                    "error" => $th->getMessage(),
+                );
+            }
+            return array(
+                "success" => true,
+                "resultNote" => $resultNote,
+                "resutChangeStatus" => $resutChangeStatus,
+            );
+        } catch (\Throwable $th) {
+            return array(
+                "success" => false,
+                "error" => $th->getMessage(),
+            );
+        }
+    }
 }
