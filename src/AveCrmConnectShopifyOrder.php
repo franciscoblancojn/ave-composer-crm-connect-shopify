@@ -404,23 +404,27 @@ class AveCrmConnectShopifyOrder
                 $token,
                 $agentId
             );
+
             $tokenShopify = $config['tokenShopify'];
             $shopifyOrderId = $config['shopifyOrderId'];
 
             $shopify = new AveConnectShopify($tokenShopify['url'], $tokenShopify['token']);
+
+            // 1️⃣ Agregar nota inicial al pedido
             $resultNote = $shopify->orderGraphQL->addNote([
                 "order" => [
                     "id" => $shopifyOrderId,
-                    "note" => "Nota desde Aveonline - estado de pedido: " . $status
-                ]
+                    "note" => "Nota desde Aveonline - estado de pedido: " . $status,
+                ],
             ]);
-            $resutChangeStatus = null;
-            try {
 
+            $resultChangeStatus = null;
+
+            try {
                 // 2️⃣ Normalizar el nombre del status (por si llega con mayúsculas o tildes)
                 $statusNormalized = strtolower(trim($status));
 
-                // 3️⃣ Determinar la acción en Shopify según el status AveOnline
+                // 3️⃣ Determinar la acción en Shopify según el estado AveOnline
                 switch ($statusNormalized) {
                     case 'solicitada':
                     case 'sin confirmar':
@@ -429,22 +433,29 @@ class AveCrmConnectShopifyOrder
                     case 'lista para despacho':
                     case 'procesando guia':
                     case 'en devolucion':
-                        $resutChangeStatus = $shopify->orderGraphQL->openOrder($shopifyOrderId);
+                        $resultChangeStatus = $shopify->orderGraphQL->openOrder($shopifyOrderId);
                         break;
 
-                    case 'en reparto':///
-                        $resutChangeStatus = $shopify->orderGraphQL->fulfillOrder($shopifyOrderId);
+                    case 'en reparto':
+                        $resultChangeStatus = $shopify->orderGraphQL->fulfillOrder($shopifyOrderId);
                         break;
 
                     case 'entregada':
-                        $resutChangeStatus = $shopify->orderGraphQL->closeOrder($shopifyOrderId);
+                        $resultChangeStatus = $shopify->orderGraphQL->closeOrder($shopifyOrderId);
                         break;
 
                     case 'anulada':
                     case 'anulada full':
-                        $resutChangeStatus = $shopify->orderGraphQL->archiveOrder($shopifyOrderId);
+                        $shopify->orderGraphQL->addNote([
+                            "order" => [
+                                "id" => $shopifyOrderId,
+                                "note" => "Pedido marcado como 'Anulado' desde Aveonline",
+                            ],
+                        ]);
+                        $resultChangeStatus = $shopify->orderGraphQL->closeOrder($shopifyOrderId);
                         break;
 
+                    // ⚙️ Casos informativos (solo nota)
                     case 'modificado por comprador':
                     case 'error en cobertura':
                     case 'direccion incompleta':
@@ -452,32 +463,38 @@ class AveCrmConnectShopifyOrder
                     case 'sin inventario':
                     case 'preparado por otro operador':
                     case 'novedad':
-                        $resutChangeStatus = $shopify->orderGraphQL->unarchiveOrder($shopifyOrderId);
+                        $resultChangeStatus = $shopify->orderGraphQL->addNote([
+                            "order" => [
+                                "id" => $shopifyOrderId,
+                                "note" => "Pedido con estado: " . ucfirst($statusNormalized),
+                            ],
+                        ]);
                         break;
 
                     default:
-                        $resutChangeStatus = [
+                        $resultChangeStatus = [
                             "success" => false,
-                            "error" => "Estado no reconocido: {$status}"
+                            "error" => "Estado no reconocido: {$status}",
                         ];
                         break;
                 }
             } catch (\Throwable $th) {
-                $resutChangeStatus = array(
+                $resultChangeStatus = [
                     "success" => false,
                     "error" => $th->getMessage(),
-                );
+                ];
             }
-            return array(
+
+            return [
                 "success" => true,
                 "resultNote" => $resultNote,
-                "resutChangeStatus" => $resutChangeStatus,
-            );
+                "resultChangeStatus" => $resultChangeStatus,
+            ];
         } catch (\Throwable $th) {
-            return array(
+            return [
                 "success" => false,
                 "error" => $th->getMessage(),
-            );
+            ];
         }
     }
 }
