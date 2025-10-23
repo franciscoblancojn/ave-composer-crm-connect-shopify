@@ -57,6 +57,10 @@ class AveCrmConnectShopifyProduct
         $t = trim($t, '-');
         return strtolower($t);
     }
+    function normalizeId($value)
+    {
+        return preg_replace('/\D/', '', $value);
+    }
 
     /**
      * Construye el JSON de creación de producto en Shopify.
@@ -220,6 +224,7 @@ class AveCrmConnectShopifyProduct
                 "images"                => $shopifyImages,
                 "image"                 => $principalImg,
                 "categoryName"          => $categoryName, // custom field   
+                "created_by"            => "AveCRM", // custom field
             ]
         ];
         return $shopifyProduct;
@@ -309,7 +314,7 @@ class AveCrmConnectShopifyProduct
                 $products_refs[] = [
                     "product_id"  => $productId,
                     "parent_id"   => null,
-                    "product_ref" => "$product_ref",
+                    "product_ref" => $this->normalizeId("$product_ref"),
                     "token_id"    => $token_id,
                     "product_type"    => $product_dropshipping_id ? 2 : 1,
                     "product_dropshipping_id"    => $product_dropshipping_id,
@@ -331,7 +336,7 @@ class AveCrmConnectShopifyProduct
                     $products_refs[] = [
                         "product_id"  => $variant_id,
                         "parent_id"   => $productId,
-                        "product_ref" => "$product_ref",
+                        "product_ref" => $this->normalizeId("$product_ref"),
                         "token_id"    => $token_id,
                         "product_type"    => $variant_dropshipping_id ? 2 : 1,
                         "product_dropshipping_id"    => $variant_dropshipping_id,
