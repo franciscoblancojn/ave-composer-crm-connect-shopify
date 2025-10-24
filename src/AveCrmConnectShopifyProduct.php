@@ -55,7 +55,7 @@ class AveCrmConnectShopifyProduct
         $t = iconv('UTF-8', 'ASCII//TRANSLIT', $text);
         $t = preg_replace('/[^a-zA-Z0-9]+/', '-', $t);
         $t = trim($t, '-');
-        return strtolower($t);
+        return strtolower($t).rand(1, 1000);
     }
     function normalizeId($value)
     {
@@ -302,6 +302,7 @@ class AveCrmConnectShopifyProduct
             $token_id = $tokensShopify[$i]['id'];
             $shop = $tokensShopify[$i]['url'];
             $token = $tokensShopify[$i]['token'];
+            $id_agente = $tokensShopify[$i]['id_agente'];
             try {
                 $shopify = new AveConnectShopify($shop, $token);
                 $result = $shopify->productGraphQL->post($jsonProductForCreate);
@@ -345,6 +346,8 @@ class AveCrmConnectShopifyProduct
                 $products_refs_result = $this->ave->postProductIdRef($token, $products_refs);
 
                 $resultCreateShopify[$shop] = [
+                    "success" => true,
+                    "id_agente" => $id_agente,
                     "shop" => $shop,
                     "send" => $jsonProductForCreate,
                     "result" => $result,
@@ -354,6 +357,7 @@ class AveCrmConnectShopifyProduct
                 ];
             } catch (\Throwable $e) {
                 $resultCreateShopify[$shop] = [
+                    "id_agente" => $id_agente,
                     "shop" => $shop,
                     "product_id" => $productId,
                     "send" => $jsonProductForCreate,
