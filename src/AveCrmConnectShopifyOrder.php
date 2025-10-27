@@ -395,7 +395,8 @@ class AveCrmConnectShopifyOrder
         int $companyId,
         string $token,
         int $agentId,
-        string $status
+        string $status,
+        string $note = ""
     ) {
         try {
             $config = $this->getConfigSendDataOrder(
@@ -414,7 +415,7 @@ class AveCrmConnectShopifyOrder
             $resultNote = $shopify->orderGraphQL->addNote([
                 "order" => [
                     "id" => $shopifyOrderId,
-                    "note" => "Nota desde Aveonline - estado de pedido: " . $status,
+                    "note" => "Nota desde Aveonline - estado de pedido: " . $status . "" . ($note != "" ? " - " . $note : ""),
                 ],
             ]);
 
@@ -454,7 +455,7 @@ class AveCrmConnectShopifyOrder
                         $shopify->orderGraphQL->addNote([
                             "order" => [
                                 "id" => $shopifyOrderId,
-                                "note" => "Pedido marcado como 'Anulado' desde Aveonline",
+                                "note" => "Pedido marcado como 'Anulado' desde Aveonline" . ($note != "" ? " - " . $note : ""),
                             ],
                         ]);
                         $resultChangeStatus = $shopify->orderGraphQL->closeOrder($shopifyOrderId);
@@ -472,7 +473,7 @@ class AveCrmConnectShopifyOrder
                         $resultChangeStatus = $shopify->orderGraphQL->addNote([
                             "order" => [
                                 "id" => $shopifyOrderId,
-                                "note" => "Pedido con estado: " . ucfirst($statusNormalized),
+                                "note" => "Pedido con estado: " . ucfirst($statusNormalized) . " desde Aveonline" . ($note != "" ? " - " . $note : ""),
                             ],
                         ]);
                         break;
@@ -481,7 +482,7 @@ class AveCrmConnectShopifyOrder
                     default:
                         $resultChangeStatus = [
                             "success" => false,
-                            "error" => "Estado no reconocido: {$status}",
+                            "error" => "Estado no reconocido: {$status}" . ($note != "" ? " - " . $note : ""),
                         ];
                         break;
                 }
