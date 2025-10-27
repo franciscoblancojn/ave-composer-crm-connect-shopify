@@ -121,7 +121,7 @@ class AveCrmConnectShopifyProduct
 
         if (!empty($variants)) {
             foreach ($variants as $i => $variant) {
-                $attributes = $variant['attributes'];
+                $attributes = $variant['attributes'] ?? [];
                 $options = [];
                 foreach ($attributes as $key => $value) {
                     $options[] = $value;
@@ -505,24 +505,25 @@ class AveCrmConnectShopifyProduct
                 }
                 $result = null;
                 if (!$product_exits) {
-                    $result = $this->post(
-                        $idempresa,
-                        $token,
-                        $productName,
-                        $productRef,
-                        $sugerido,
-                        $peso,
-                        $unidades,
-                        $marcaName,
-                        $categoryName,
-                        $productStatus,
-                        $productDesc,
-                        $etiquetas,
-                        $variants,
-                        $url,
-                        null,
-                        null,
-                    );
+                    // $result = $this->post(
+                    //     $idempresa,
+                    //     $token,
+                    //     $productName,
+                    //     $productRef,
+                    //     $sugerido,
+                    //     $peso,
+                    //     $unidades,
+                    //     $marcaName,
+                    //     $categoryName,
+                    //     $productStatus,
+                    //     $productDesc,
+                    //     $etiquetas,
+                    //     $variants,
+                    //     $url,
+                    //     null,
+                    //     null,
+                    // );
+                    $result = "Producto no existe en la tienda Shopify.";
                 } else {
                     // El método put de AveConnectShopify requiere el ID del producto como primer parámetro
                     $result = $shopify->productGraphQL->put($jsonProductForUpdate);
