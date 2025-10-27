@@ -166,8 +166,8 @@ class AveCrmConnectShopifyProduct
                 ];
             }
         } else if ($defaultVariantId != -1) {
-            $key = "default_variant";
-            $value = "default_variant";
+            $key = "Por Defecto";
+            $value = "Por Defecto";
             $shopifyOptions[$key] ??= [
                 "name" => $key,
                 "values" => []
@@ -193,8 +193,8 @@ class AveCrmConnectShopifyProduct
             ];
         }
         if (count($shopifyOptions) == 0 && $defaultVariantId != -1) {
-            $key = "default_variant";
-            $value = "default_variant";
+            $key = "Por Defecto";
+            $value = "Por Defecto";
             $shopifyOptions[$key] ??= [
                 "name" => $key,
                 "values" => []
