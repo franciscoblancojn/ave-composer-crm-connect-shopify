@@ -433,6 +433,7 @@ class AveCrmConnectShopifyOrder
                     case 'en alistamiento':
                     case 'lista para despacho':
                     case 'procesando guia':
+                    case 'en bodega de origen':
                     case 'en devolucion':
                         $resultChangeStatus = $shopify->orderGraphQL->openOrder($shopifyOrderId);
                         break;
