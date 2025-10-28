@@ -108,11 +108,20 @@ class AveConnectShopifyApiAve
     public function onGetTokenShopifyByCompanyAgent(
         string $idempresa,
         string $token,
-        int $agentId
+        int $agentId,
+        $shop_url = null
     ) {
         try {
             $data = $this->getAgentShopToken($idempresa, $token, $agentId);
             if (!$data || !$data['data'] || count($data['data']) == 0) {
+                return null;
+            }
+            if($shop_url){
+                foreach($data['data'] as $shop){
+                    if($shop['url'] === $shop_url){
+                        return $shop;
+                    }
+                }
                 return null;
             }
             return $data['data'][0];

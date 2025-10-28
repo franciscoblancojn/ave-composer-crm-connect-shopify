@@ -291,20 +291,21 @@ class AveCrmConnectShopifyOrder
         if (empty($agentId)) {
             throw new \InvalidArgumentException("El ID del agente no puede estar vacio.");
         }
-
-        $tokenShopify = $this->ave->onGetTokenShopifyByCompanyAgent(
-            $companyId,
-            $token,
-            $agentId
-        );
-        if ($tokenShopify == null) {
-            throw new \InvalidArgumentException("No se encontraron tiendas Shopify asociadas a la empresa y agente.");
-        }
-
         $existingOrder = null;
         $existingOrder = $this->ave->getShopifyOrderNumber($token, $orderId);
         if ($existingOrder == null || empty($existingOrder)) {
             throw new \InvalidArgumentException("No se encontraron ordenes de Shopify asociadas al  ID de la orden.");
+        }
+
+        $tokenShopify = $this->ave->onGetTokenShopifyByCompanyAgent(
+            $companyId,
+            $token,
+            $agentId,
+            $existingOrder[0]['shop_url']
+        );
+
+        if ($tokenShopify == null) {
+            throw new \InvalidArgumentException("No se encontraron tiendas Shopify asociadas a la empresa y agente.");
         }
 
         $shopifyOrderId = $existingOrder[0]['shopify_order_id'] ?? null;
@@ -405,7 +406,7 @@ class AveCrmConnectShopifyOrder
                 $token,
                 $agentId
             );
-
+            
             $tokenShopify = $config['tokenShopify'];
             $shopifyOrderId = $config['shopifyOrderId'];
 
