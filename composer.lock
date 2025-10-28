@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "franciscoblancojn/ave-composer-connect-shopify",
-            "version": "v1.5.5",
+            "version": "v1.5.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/franciscoblancojn/ave-composer-connect-shopify.git",
-                "reference": "5a71e35158cf831b9bb9cdccdedd62c57f6a9268"
+                "reference": "9691edc7cb6697be44e9bda14de9a2446d28317c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/franciscoblancojn/ave-composer-connect-shopify/zipball/5a71e35158cf831b9bb9cdccdedd62c57f6a9268",
-                "reference": "5a71e35158cf831b9bb9cdccdedd62c57f6a9268",
+                "url": "https://api.github.com/repos/franciscoblancojn/ave-composer-connect-shopify/zipball/9691edc7cb6697be44e9bda14de9a2446d28317c",
+                "reference": "9691edc7cb6697be44e9bda14de9a2446d28317c",
                 "shasum": ""
             },
             "require": {
@@ -37,9 +37,9 @@
             "description": "Libreria para conectar con Shopify",
             "support": {
                 "issues": "https://github.com/franciscoblancojn/ave-composer-connect-shopify/issues",
-                "source": "https://github.com/franciscoblancojn/ave-composer-connect-shopify/tree/v1.5.5"
+                "source": "https://github.com/franciscoblancojn/ave-composer-connect-shopify/tree/v1.5.6"
             },
-            "time": "2025-10-28T15:22:25+00:00"
+            "time": "2025-10-28T19:52:18+00:00"
         },
         {
             "name": "franciscoblancojn/composer-validator",
