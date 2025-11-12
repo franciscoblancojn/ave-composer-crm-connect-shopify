@@ -406,7 +406,7 @@ class AveCrmConnectShopifyOrder
                 $token,
                 $agentId
             );
-            
+
             $tokenShopify = $config['tokenShopify'];
             $shopifyOrderId = $config['shopifyOrderId'];
 
@@ -505,5 +505,30 @@ class AveCrmConnectShopifyOrder
                 "error" => $th->getMessage(),
             ];
         }
+    }
+    public function sync($idempresa, $agentId, $token, $id, string $status = "completed", string $message = "Sincronizado correctamente")
+    {
+        // Validar que el productId sea requerido para actualización
+        if (empty($id)) {
+            throw new \InvalidArgumentException('El ID del order es requerido para actualizar en Shopify');
+        }
+        $config = $this->getConfigSendDataOrder(
+            $id,
+            $idempresa,
+            $token,
+            $agentId
+        );
+
+        $tokenShopify = $config['tokenShopify'];
+        $shopifyOrderId = $config['shopifyOrderId'];
+        $shopify = new AveConnectShopify($tokenShopify['url'], $tokenShopify['token']);
+
+        $resultSync = $shopify->orderGraphQL->sync(
+            $shopifyOrderId,
+            $status,
+            $message
+        );
+
+        return $resultSync;
     }
 }

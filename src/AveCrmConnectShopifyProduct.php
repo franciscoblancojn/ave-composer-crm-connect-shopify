@@ -55,7 +55,7 @@ class AveCrmConnectShopifyProduct
         $t = iconv('UTF-8', 'ASCII//TRANSLIT', $text);
         $t = preg_replace('/[^a-zA-Z0-9]+/', '-', $t);
         $t = trim($t, '-');
-        return strtolower($t).rand(1, 1000);
+        return strtolower($t) . rand(1, 1000);
     }
     function normalizeId($value)
     {
@@ -553,5 +553,61 @@ class AveCrmConnectShopifyProduct
         }
 
         return $resultUpdateShopify;
+    }
+
+
+    public function sync($idempresa, $token, $id, string $status = "completed", string $message = "Sincronizado correctamente")
+    {
+        // Validar que el productId sea requerido para actualización
+        if (empty($id)) {
+            throw new \InvalidArgumentException('El ID del producto es requerido para actualizar en Shopify');
+        }
+        $product_ref_result = $this->ave->getProductIdRef($token, $id);
+        $product_ref_data = $product_ref_result['data'];
+        $tokensShopify = $this->ave->onGetTokenShopifyByCompany(
+            $idempresa,
+            $token
+        );
+        $resultSync = [];
+        for ($i = 0; $i < count($tokensShopify); $i++) {
+            $shop = $tokensShopify[$i]['url'];
+            $shopId = $tokensShopify[$i]['id'];
+            $shopToken = $tokensShopify[$i]['token'];
+
+            try {
+                $shopify = new AveConnectShopify($shop, $shopToken);
+
+                $product_ref_data_filter = array_values(array_filter($product_ref_data, function ($e) use ($shopId) {
+                    return $e['token_id'] == $shopId;
+                }));
+                for ($j = 0; $j < count($product_ref_data_filter); $j++) {
+                    $product_id = $product_ref_data_filter[$j]['product_id'];
+                    $product_ref = $product_ref_data_filter[$j]['product_ref'];
+
+                    if ($id == $product_id) {
+                        $result = $shopify->productGraphQL->sync(
+                            $product_ref,
+                            $status,
+                            $message,
+                        );
+                        $resultSync[$shop] = [
+                            "shop" => $shop,
+                            "shopId" => $shopId,
+                            "result" => $result,
+                            "success" => true,
+                        ];
+                    }
+                }
+            } catch (\Throwable $e) {
+                $resultSync[$shop] = [
+                    "shop" => $shop,
+                    "shopId" => $shopId,
+                    "result" => null,
+                    "success" => false,
+                    "error" => $e->getMessage()
+                ];
+            }
+        }
+        return $resultSync;
     }
 }
