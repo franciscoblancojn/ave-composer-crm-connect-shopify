@@ -296,6 +296,34 @@ class AveCrmConnectShopifyProduct
             $productId,           // ?string
             $defaultVariantId,
         );
+
+
+        $product_ref_data = [];
+        if ($product_dropshipping_id) {
+            $products_dropshipping_id = [$product_dropshipping_id];
+            for ($j = 0; $j < count($jsonProductForCreate['product']['variants'] ?? []); $j++) {
+                if ($jsonProductForCreate['product']['variants'][$j]['dropshipping_id']) {
+                    $products_dropshipping_id[] = $jsonProductForCreate['product']['variants'][$j]['dropshipping_id'];
+                }
+            }
+            $product_dropshipping_ref_result = $this->ave->getProductIdRef($token, $products_dropshipping_id);
+            $product_ref_data = $product_dropshipping_ref_result['data'];
+        }
+        if (count($product_ref_data) == 0) {
+            $products_id = [$productId];
+            for ($j = 0; $j < count($jsonProductForCreate['product']['variants'] ?? []); $j++) {
+                $products_id[] = $jsonProductForCreate['product']['variants'][$j]['id'];
+            }
+            $product_ref_result = $this->ave->getProductIdRef($token, $products_id);
+            $product_ref_data = $product_ref_result['data'];
+        }
+        $resultRefForShopCreated = [];
+        if ($product_ref_data && count($product_ref_data) > 0) {
+            foreach ($product_ref_data as $key => $ref) {
+                $resultRefForShopCreated[$ref['token_id']] ??= [];
+                $resultRefForShopCreated[$ref['token_id']][$ref['product_id']] = $ref['product_ref'];
+            }
+        }
         $resultCreateShopify = [];
         for ($i = 0; $i < count($tokensShopify); $i++) {
             $variations_put = [];
@@ -303,6 +331,48 @@ class AveCrmConnectShopifyProduct
             $shop = $tokensShopify[$i]['url'];
             $token = $tokensShopify[$i]['token'];
             $id_agente = $tokensShopify[$i]['id_agente'];
+            $shoPreRef = $resultRefForShopCreated[$token_id] ?? [];
+            if (isset($shoPreRef[$productId])) {
+                $products_refs = [];
+                $products_refs[] = [
+                    "product_id"  => $productId,
+                    "parent_id"   => null,
+                    "product_ref" => $this->normalizeId($shoPreRef[$productId]),
+                    "token_id"    => $token_id,
+                    "product_type"    => $product_dropshipping_id ? 2 : 1,
+                    "product_dropshipping_id"    => $product_dropshipping_id,
+                ];
+                $variants = $jsonProductForCreate['product']['variants'];
+                for ($j = 0; $j < count($variants); $j++) {
+                    $variant_id = $variants[$j]['id'];
+                    $variant_dropshipping_id = $variants[$j]['dropshipping_id'] ?? null;
+                    $variant_sku = $variants[$j]['sku'];
+                    // Buscar en $variantsResult el product_ref que coincida con el sku
+                    if (isset($shoPreRef[$variant_id])) {
+                        $product_ref = $shoPreRef[$variant_id];
+                        $products_refs[] = [
+                            "product_id"  => $variant_id,
+                            "parent_id"   => $productId,
+                            "product_ref" => $this->normalizeId("$product_ref"),
+                            "token_id"    => $token_id,
+                            "product_type"    => $variant_dropshipping_id ? 2 : 1,
+                            "product_dropshipping_id"    => $variant_dropshipping_id,
+                        ];
+                    }
+                }
+                $resultCreateShopify[$shop] = [
+                    "precreated" => true,
+                    "success" => true,
+                    "id_agente" => $id_agente,
+                    "shop" => $shop,
+                    "send" => $jsonProductForCreate,
+                    // "result" => $result,
+                    // "variations_put" => $variations_put,
+                    "products_refs" => $products_refs,
+                    // "products_refs_result" => $products_refs_result,
+                ];
+                continue;
+            }
             try {
                 $shopify = new AveConnectShopify($shop, $token);
                 $result = $shopify->productGraphQL->post($jsonProductForCreate);
