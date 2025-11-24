@@ -429,18 +429,18 @@ class AveCrmConnectShopifyOrder
                 // 3️⃣ Determinar la acción en Shopify según el estado AveOnline
                 switch ($statusNormalized) {
                     //OK:
-                    case 'solicitada':
                     case 'sin confirmar':
                     case 'pre confirmado':
+                        $resultChangeStatus = $shopify->orderGraphQL->openOrder($shopifyOrderId);
+                        break;
+
+                    //OK:
+                    case 'solicitada':
                     case 'en alistamiento':
                     case 'lista para despacho':
                     case 'procesando guia':
                     case 'en bodega de origen':
                     case 'en devolucion':
-                        $resultChangeStatus = $shopify->orderGraphQL->openOrder($shopifyOrderId);
-                        break;
-
-                    //OK:
                     case 'en reparto':
                         $resultChangeStatus = $shopify->orderGraphQL->fulfillOrder($shopifyOrderId);
                         break;
