@@ -680,4 +680,98 @@ class AveCrmConnectShopifyProduct
         }
         return $resultSync;
     }
+
+
+    public function putStock(
+        string $idempresa,
+        string $token,
+        string $productId,
+        array $variants,
+    ) {
+        // Validar que el productId sea requerido para actualización
+        if (empty($productId)) {
+            throw new \InvalidArgumentException('El ID del producto es requerido para actualizar en Shopify');
+        }
+
+        $tokensShopify = $this->ave->onGetTokenShopifyByCompany(
+            $idempresa,
+            $token
+        );
+
+        if ($tokensShopify == null) {
+            return null;
+        }
+
+        $resultUpdateShopify = [];
+
+        $products_id = [$productId];
+        for ($j = 0; $j < count($variants); $j++) {
+            $products_id[] = $variants[$j]['id'];
+        }
+        $product_ref_result = $this->ave->getProductIdRef($token, $products_id);
+        $product_ref_data = $product_ref_result['data'];
+
+
+        for ($i = 0; $i < count($tokensShopify); $i++) {
+            $variantsForUpdate = [
+                "variants" => []
+            ];
+            $shop = $tokensShopify[$i]['url'];
+            $shopId = $tokensShopify[$i]['id'];
+            $shopToken = $tokensShopify[$i]['token'];
+
+            try {
+                $shopify = new AveConnectShopify($shop, $shopToken);
+                $product_ref_data_filter = array_values(array_filter($product_ref_data, function ($e) use ($shopId) {
+                    return $e['token_id'] == $shopId;
+                }));
+                for ($j = 0; $j < count($product_ref_data_filter); $j++) {
+                    $product_id = $product_ref_data_filter[$j]['product_id'];
+                    $product_ref = $product_ref_data_filter[$j]['product_ref'];
+
+                    if ($productId == $product_id) {
+                        $variantsForUpdate['product_id'] = $product_ref;
+                    } else {
+                        for ($k = 0; $k < count($variants); $k++) {
+                            if ($variants['id'] == $product_id) {
+                                $variantsForUpdate['variants'][] = [
+                                    "id" => $product_ref,
+                                    "quantity" => $variants[$k]['quantity'],
+                                ];
+                            }
+                        }
+                    }
+                }
+                $result = [];
+                for ($i = 0; $i < count($variantsForUpdate['variants']); $i++) {
+                    $result[] = $shopify->productGraphQL->putStock(
+                        $variantsForUpdate['product_id'],
+                        $variantsForUpdate['variants'][$i]['id'],
+                        $variantsForUpdate['variants'][$i]['quantity'],
+                    );
+                }
+
+                $resultUpdateShopify[$shop] = [
+                    "success" => true,
+                    "shop" => $shop,
+                    "product_id" => $productId,
+                    "send" => $variantsForUpdate,
+                    "result" => $result,
+                    "product_ref_data" => $product_ref_data,
+                    "product_ref_data_filter" => $product_ref_data_filter,
+                ];
+            } catch (\Throwable $e) {
+                $resultUpdateShopify[$shop] = [
+                    "shop" => $shop,
+                    "product_id" => $productId,
+                    "send" => $variantsForUpdate,
+                    "result" => null,
+                    "success" => false,
+                    "error" => $e->getMessage()
+                ];
+            }
+        }
+
+        return $resultUpdateShopify;
+    }
 }
