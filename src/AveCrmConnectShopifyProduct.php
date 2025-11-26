@@ -681,7 +681,48 @@ class AveCrmConnectShopifyProduct
         return $resultSync;
     }
 
-
+    /**
+     * Actualiza el stock de un producto y sus variantes asociadas en múltiples tiendas Shopify.
+     *
+     * Este método recibe la empresa, el token de acceso interno, el ID del producto interno
+     * y una lista de variantes con sus cantidades. Luego:
+     * 
+     * 1. Obtiene los tokens de Shopify asociados a la empresa.
+     * 2. Obtiene los IDs reales en Shopify para el producto y sus variantes.
+     * 3. Construye un paquete de actualizaciones por tienda.
+     * 4. Llama al método `putStock()` del módulo GraphQL interno para actualizar 
+     *    el stock variante por variante.
+     * 5. Genera un informe por cada tienda con el resultado.
+     *
+     * --- Flujo general ---
+     *
+     * - Recibe un producto con variantes (del sistema interno).
+     * - Traduce esos IDs internos a IDs de Shopify usando `getProductIdRef()`.
+     * - Agrupa variantes por tienda según el token.
+     * - Actualiza cada variante de forma individual en Shopify usando GraphQL.
+     * - Retorna un array con éxito o error por cada tienda procesada.
+     *
+     * @param string $idempresa   ID de la empresa dueña del producto dentro del sistema interno.
+     * @param string $token       Token de autenticación interno para validar acceso.
+     * @param string $productId   ID del producto interno cuyo stock se desea actualizar.
+     * @param array  $variants    Lista de variantes internas. Cada variante debe incluir:
+     *                            - id: ID interno de la variante.
+     *                            - quantity: nueva cantidad de inventario.
+     *
+     * @throws \InvalidArgumentException si el ID del producto está vacío.
+     *
+     * @return array|null
+     *         Array asociativo donde cada key es una tienda Shopify procesada y contiene:
+     *         - success (bool)     : Si la tienda procesó correctamente las actualizaciones.
+     *         - shop (string)      : URL de la tienda procesada.
+     *         - product_id (string): ID interno del producto original.
+     *         - send (array)       : Payload enviado a Shopify.
+     *         - result (array)     : Resultado de cada llamada a `putStock` por variante.
+     *         - product_ref_data (array)          : Datos completos de referencias internos/Shopify.
+     *         - product_ref_data_filter (array)   : Datos filtrados por tienda.
+     *
+     *         Retorna null si no existen tokens de Shopify para la empresa.
+     */
     public function putStock(
         string $idempresa,
         string $token,
