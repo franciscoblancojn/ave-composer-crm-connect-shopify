@@ -727,7 +727,7 @@ class AveCrmConnectShopifyProduct
         string $idempresa,
         string $token,
         string $productId,
-        array $variants,
+        array $variants
     ) {
         // Validar que el productId sea requerido para actualización
         if (empty($productId)) {
@@ -738,11 +738,9 @@ class AveCrmConnectShopifyProduct
             $idempresa,
             $token
         );
-
         if ($tokensShopify == null) {
             return null;
         }
-
         $resultUpdateShopify = [];
 
         $products_id = [$productId];
@@ -751,6 +749,7 @@ class AveCrmConnectShopifyProduct
         }
         $product_ref_result = $this->ave->getProductIdRef($token, $products_id);
         $product_ref_data = $product_ref_result['data'];
+
 
 
         for ($i = 0; $i < count($tokensShopify); $i++) {
@@ -766,6 +765,9 @@ class AveCrmConnectShopifyProduct
                 $product_ref_data_filter = array_values(array_filter($product_ref_data, function ($e) use ($shopId) {
                     return $e['token_id'] == $shopId;
                 }));
+                if (count($product_ref_data_filter) == 0) {
+                    throw new \Exception('El producto no existe en la tienda Shopify.');
+                }
                 for ($j = 0; $j < count($product_ref_data_filter); $j++) {
                     $product_id = $product_ref_data_filter[$j]['product_id'];
                     $product_ref = $product_ref_data_filter[$j]['product_ref'];
@@ -774,7 +776,7 @@ class AveCrmConnectShopifyProduct
                         $variantsForUpdate['product_id'] = $product_ref;
                     } else {
                         for ($k = 0; $k < count($variants); $k++) {
-                            if ($variants['id'] == $product_id) {
+                            if ($variants[$k]['id'] == $product_id) {
                                 $variantsForUpdate['variants'][] = [
                                     "id" => $product_ref,
                                     "quantity" => $variants[$k]['quantity'],
@@ -783,12 +785,17 @@ class AveCrmConnectShopifyProduct
                         }
                     }
                 }
+                if (count($variantsForUpdate['variants']) == 0) {
+                    throw new \Exception('El producto no tiene variantes en la tienda Shopify.');
+                }
                 $result = [];
-                for ($i = 0; $i < count($variantsForUpdate['variants']); $i++) {
+                for ($j = 0; $j < count($variantsForUpdate['variants']); $j++) {
                     $result[] = $shopify->productGraphQL->putStock(
-                        $variantsForUpdate['product_id'],
-                        $variantsForUpdate['variants'][$i]['id'],
-                        $variantsForUpdate['variants'][$i]['quantity'],
+                        [
+                            "product_id" => $variantsForUpdate['product_id'],
+                            "variant_id" => $variantsForUpdate['variants'][$j]['id'],
+                            "quantity"   => $variantsForUpdate['variants'][$j]['quantity'],
+                        ]
                     );
                 }
 
