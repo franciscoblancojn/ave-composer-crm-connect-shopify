@@ -428,13 +428,13 @@ class AveCrmConnectShopifyOrder
 
                 // 3️⃣ Determinar la acción en Shopify según el estado AveOnline
                 switch ($statusNormalized) {
-                    //OK:
+                    //OK: en progreso
                     case 'sin confirmar':
                     case 'pre confirmado':
                         $resultChangeStatus = $shopify->orderGraphQL->openOrder($shopifyOrderId);
                         break;
 
-                    //OK:
+                    //OK: preparada
                     case 'solicitada':
                     case 'en alistamiento':
                     case 'lista para despacho':
@@ -445,12 +445,12 @@ class AveCrmConnectShopifyOrder
                         $resultChangeStatus = $shopify->orderGraphQL->fulfillOrder($shopifyOrderId);
                         break;
 
-                    //OK:
+                    //OK: archivada
                     case 'entregada':
                         $resultChangeStatus = $shopify->orderGraphQL->closeOrder($shopifyOrderId);
                         break;
 
-                    //OK:
+                    //OK: cancelada
                     case 'anulada':
                     case 'anulada full':
                         $shopify->orderGraphQL->addNote([
@@ -459,10 +459,10 @@ class AveCrmConnectShopifyOrder
                                 "note" => "Pedido marcado como 'Anulado' desde Aveonline" . ($note != "" ? " - " . $note : ""),
                             ],
                         ]);
-                        $resultChangeStatus = $shopify->orderGraphQL->closeOrder($shopifyOrderId);
+                        $resultChangeStatus = $shopify->orderGraphQL->cancelOrder2($shopifyOrderId,'OTHER');
                         break;
 
-                    //OK:
+                    //OK: notificar
                     // ⚙️ Casos informativos (solo nota)
                     case 'modificado por comprador':
                     case 'error en cobertura':
