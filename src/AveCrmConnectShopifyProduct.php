@@ -759,7 +759,22 @@ class AveCrmConnectShopifyProduct
             $shop = $tokensShopify[$i]['url'];
             $shopId = $tokensShopify[$i]['id'];
             $shopToken = $tokensShopify[$i]['token'];
-
+            $config = $tokensShopify[$i]['config'];
+            if (
+                empty($config) ||
+                !is_array($config) ||
+                empty($config['syncStock'])
+            ) {
+                $resultUpdateShopify[$shop] = [
+                    "shop" => $shop,
+                    "product_id" => $productId,
+                    "send" => $variantsForUpdate,
+                    "result" => null,
+                    "success" => false,
+                    "error" => "syncStock is null or false"
+                ];
+                continue;
+            }
             try {
                 $shopify = new AveConnectShopify($shop, $shopToken);
                 $product_ref_data_filter = array_values(array_filter($product_ref_data, function ($e) use ($shopId) {
