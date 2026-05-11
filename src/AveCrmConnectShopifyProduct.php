@@ -85,6 +85,7 @@ class AveCrmConnectShopifyProduct
         string $productName,
         string $productRef,
         float $sugerido,
+        float $cost = 0,
         float $peso,
         int $unidades,
         string $marcaName,
@@ -147,6 +148,7 @@ class AveCrmConnectShopifyProduct
                     "id"                   => $variant['id'] ?? '',
                     "title"                => $variant['name'] ?? "Variante " . ($i + 1),
                     "price"                => ($variant['price'] ?? $sugerido) . "",
+                    "cost"                 => ($variant['cost'] ?? 0),
                     "sku"                  => $variant['sku'] ?? $productRef,
                     "position"             => $i + 1,
                     "inventory_policy"     => "deny",
@@ -177,6 +179,7 @@ class AveCrmConnectShopifyProduct
                 "id"                   => $defaultVariantId ? ((string)($defaultVariantId ?? '')) : ($productId  ? (string)($productId ?? '') : ''),
                 "title"                => $productName,
                 "price"                => ($sugerido) . "",
+                "cost"                 => ($costo ?? 0),
                 "sku"                  => $productRef,
                 "position"             => 1,
                 "inventory_policy"     => "deny",
@@ -258,6 +261,7 @@ class AveCrmConnectShopifyProduct
         string $productName,
         string $productRef,
         float $sugerido,
+        float $cost,
         float $peso,
         int $unidades,
         string $marcaName,
@@ -284,6 +288,7 @@ class AveCrmConnectShopifyProduct
             $productName,        // string
             $productRef,         // string
             ($sugerido), // float
+            $cost, //float
             ($peso),     // float
             ($unidades),   // int  <-- ESTE FALTABA
             $marcaName,          // string
@@ -472,6 +477,7 @@ class AveCrmConnectShopifyProduct
         string $productName,
         string $productRef,
         float $sugerido,
+        float $cost,
         float $peso,
         int $unidades,
         string $marcaName,
@@ -502,6 +508,7 @@ class AveCrmConnectShopifyProduct
             $productName,
             $productRef,
             $sugerido,
+            $cost, //float
             $peso,
             $unidades,
             $marcaName,
@@ -759,22 +766,7 @@ class AveCrmConnectShopifyProduct
             $shop = $tokensShopify[$i]['url'];
             $shopId = $tokensShopify[$i]['id'];
             $shopToken = $tokensShopify[$i]['token'];
-            $config = $tokensShopify[$i]['config'];
-            if (
-                empty($config) ||
-                !is_array($config) ||
-                empty($config['syncStock'])
-            ) {
-                $resultUpdateShopify[$shop] = [
-                    "shop" => $shop,
-                    "product_id" => $productId,
-                    "send" => $variantsForUpdate,
-                    "result" => null,
-                    "success" => false,
-                    "error" => "syncStock is null or false"
-                ];
-                continue;
-            }
+
             try {
                 $shopify = new AveConnectShopify($shop, $shopToken);
                 $product_ref_data_filter = array_values(array_filter($product_ref_data, function ($e) use ($shopId) {
