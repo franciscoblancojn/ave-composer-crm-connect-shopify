@@ -97,9 +97,16 @@ class AveConnectShopifyApiAve
     /**
      * Obtiene el token de la tienda Shopify asociada a un agente.
      *
+     * Con $shop_url (la tienda de donde vino el pedido) se buscan las tiendas de toda la empresa y
+     * se toma la de esa url si el agente puede usarla: es su dueño (id_agente) o la tienda es
+     * multiagente y el agente está en config.agentes. Es la misma regla con la que api-shopify
+     * asigna el agente al crear el pedido (OrderAgent); sin ella, los pedidos de una tienda
+     * multiagente asignados a otro agente no encontraban la tienda (AVE-2484).
+     *
      * @param string $idempresa ID de la empresa en AveCRM
      * @param string $token     Token de autenticaci n para AveCRM
      * @param int $agentId ID del agente en AveCRM
+     * @param string|null $shop_url Url myshopify de la tienda del pedido
      *
      * @return array|null Token de la tienda Shopify asociada al agente, o null si no hay
      *
@@ -112,16 +119,21 @@ class AveConnectShopifyApiAve
         $shop_url = null
     ) {
         try {
-            $data = $this->getAgentShopToken($idempresa, $token, $agentId);
-            if (!$data || !$data['data'] || count($data['data']) == 0) {
-                return null;
-            }
-            if($shop_url){
-                foreach($data['data'] as $shop){
-                    if($shop['url'] === $shop_url){
+            if ($shop_url) {
+                $data = $this->getShopsTokens($idempresa, $token);
+                if (!$data || empty($data['data']) || !is_array($data['data'])) {
+                    return null;
+                }
+                foreach ($data['data'] as $shop) {
+                    if (($shop['url'] ?? null) === $shop_url && $this->agentCanUseShop($shop, $agentId)) {
                         return $shop;
                     }
                 }
+                return null;
+            }
+
+            $data = $this->getAgentShopToken($idempresa, $token, $agentId);
+            if (!$data || !$data['data'] || count($data['data']) == 0) {
                 return null;
             }
             return $data['data'][0];
@@ -130,6 +142,26 @@ class AveConnectShopifyApiAve
                 'error' => $th->getMessage()
             );
         }
+    }
+
+    /**
+     * ¿El agente puede operar pedidos de esta tienda? Sí, si es el dueño de la tienda o si la
+     * tienda es multiagente y el agente está en su lista (shopify_token.config.agentes).
+     */
+    private function agentCanUseShop(array $shop, int $agentId): bool
+    {
+        if ((int) ($shop['id_agente'] ?? 0) === $agentId) {
+            return true;
+        }
+        $config = $shop['config'] ?? null;
+        if (is_string($config)) {
+            $config = json_decode($config, true);
+        }
+        if (!is_array($config) || empty($config['multiagente'])) {
+            return false;
+        }
+        $agentes = is_array($config['agentes'] ?? null) ? array_map('intval', $config['agentes']) : [];
+        return in_array($agentId, $agentes, true);
     }
 
 
